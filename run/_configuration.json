@@ -1,0 +1,59 @@
+{
+  "config_meta": {
+    "type": "device",
+    "production": false,
+    "customer": {
+      "company": "COMPANY",
+      "contact": "CONTACT",
+      "id": 125
+    },
+    "id": 0,
+    "notes": "This profile was automatically generated from Device Augusta, with Serial Number 625T700142, on 10/10/2018 22:16:17 UTC. Firmware Version = ID TECH Augusta USB-HID V1.02. Encryption Status = TDES-DATA: MSR OFF / ICC OFF. Key Status = RKI-KEK Key.",
+    "version": "2.0.0",
+    "terminal_type": "Augusta"    
+  },
+  "hardware": {
+  "serial_num": "625T700142",
+  "contactless_available": true
+  },
+  "general_configuration": {
+    "Contact": {
+      "capk": [
+      ],
+      "aid": [
+      ],
+      "terminal_ics_type": "5C",
+      "terminal_data": "5f3601029f1a0208409f3501219f33036028c89f4005f000f0a0019f1e085465726d696e616c9f150212349f160f3030303030303030303030303030309f1c0838373635343332319f4e2231303732312057616c6b65722053742e20437970726573732c204341202c5553412edf260101df1008656e667265737a68df110100df270100dfee150101dfee160100dfee170105dfee180180dfee1f0180dfee1b083030303130353030dfee20013cdfee21010adfee2203323c3cdfee1e08d09c20d0c41e1400"
+    },  
+    "msr_settings": [
+    ],
+    "terminal_info": {
+      "firmware_ver": "ID TECH Augusta USB-HID V1.02",
+      "contact_emv_kernel_ver": "EMV Common L2 V1.10.037",
+      "contact_emv_kernel_checksum": "8d9395c588f2dec9ae9dc8bb7b9841a3525711c6",
+      "contact_emv_kernel_configuration_checksum": "dad6aed81e9375043a1dbef84c193fe863b2ed7f"
+    },
+    "encryption": {
+      "data_encryption_type": "TDES",
+      "msr_encryption_enabled": false,
+      "icc_encryption_enabled": false,
+      "crl": {}
+    }
+  },
+  "user_configuration": {
+    "expiration_masking": false,
+    "pan_clear_digits": 4,
+    "swipe_force_mask": {
+      "track1": true,
+      "track2": false,
+      "track3": true,
+      "track3card0": false
+    },
+    "swipe_mask": {
+      "track1": false,
+      "track2": true,
+      "track3": false
+    },
+    "last_update_timestamp": "2018-11-08T19:26:05.8453034Z"
+  }
+}

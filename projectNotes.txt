@@ -1,0 +1,14 @@
+/*****************************************************************************/
+/*
+ 
+  PROJECT: AUGUSTAUSBHIDCFG
+  PURPOSE: READ/WRITE Configuration from/to Augusta Device
+  DATE   : September 2018
+  NOTES  :
+
+  20181108: Added JSON configuration READ/WRITE support.
+  20181126: Added HID to KYB mode.
+
+*/
+/*****************************************************************************/
+
