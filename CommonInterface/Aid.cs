@@ -40,6 +40,7 @@ namespace AugustaHIDCfg.CommonInterface
             {
                 Dictionary<string, string> dict = Common.processTLVUnencrypted(data);
                 Debug.WriteLine("==================== TLV DUMP ====================");
+                Debug.WriteLine("AID  : {0}", (object) this.name);
                 foreach (KeyValuePair<string, string> kvp in dict)
                 {
                     text += kvp.Key + ": " + kvp.Value + "\r\n";

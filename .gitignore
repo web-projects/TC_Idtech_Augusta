@@ -19,3 +19,9 @@
 # Ignore build files
 /bin/*
 /obj/*
+AugustaUSBHIDCfg/bin/
+AugustaUSBHIDCfg/obj/
+CommonInterface/bin/
+CommonInterface/obj/
+DeviceConfiguration/bin/
+DeviceConfiguration/obj/
