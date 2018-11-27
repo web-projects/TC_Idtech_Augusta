@@ -28,6 +28,7 @@ namespace AugustaHIDCfg.MainApp
     public static Button getConfigButton;
 
     // AppDomain Artifacts
+    private AppDomainCfg appDomainCfg;
     private AppDomain appDomainDevice;
     private IDevicePlugIn devicePlugin;
     private const string MODULE_NAME = "DeviceConfiguration";
@@ -92,15 +93,15 @@ namespace AugustaHIDCfg.MainApp
     {
         new Thread(() =>
         {
-        Thread.CurrentThread.IsBackground = true;
+            Thread.CurrentThread.IsBackground = true;
 
-        ClearUI();
+            ClearUI();
 
-        // Unload The Plugin
-        UnloadPlugin(appDomainDevice);
+            // Unload The Plugin
+            appDomainCfg.UnloadPlugin(appDomainDevice);
 
-        // wait for a new device to connect
-        WaitForDeviceToConnect();
+            // wait for a new device to connect
+            WaitForDeviceToConnect();
 
         }).Start();
     }
@@ -136,8 +137,8 @@ namespace AugustaHIDCfg.MainApp
     {
         if (InvokeRequired)
         {
-        MethodInvoker Callback = new MethodInvoker(ClearUI);
-        Invoke(Callback);
+            MethodInvoker Callback = new MethodInvoker(ClearUI);
+            Invoke(Callback);
         }
         else
         {
@@ -163,12 +164,12 @@ namespace AugustaHIDCfg.MainApp
     {
         if (InvokeRequired)
         {
-        MethodInvoker Callback = new MethodInvoker(UpdateUI);
-        Invoke(Callback);
+            MethodInvoker Callback = new MethodInvoker(UpdateUI);
+            Invoke(Callback);
         }
         else
         {
-        SetConfiguration();
+            SetConfiguration();
         }
     }
 
@@ -176,20 +177,20 @@ namespace AugustaHIDCfg.MainApp
     {
         if (null == readMSRButton)
         {
-        return;
+            return;
         }
 
         // Make this threadsafe:
         if (readMSRButton.InvokeRequired)
         {
-        readMSRButton.Invoke(new MethodInvoker(() =>
-        {
-            EnableFormButtons();
-        }));
+            readMSRButton.Invoke(new MethodInvoker(() =>
+            {
+                EnableFormButtons();
+            }));
         }
         else
         {
-        readMSRButton.Enabled = true;
+            readMSRButton.Enabled = true;
         }
     }
 
@@ -215,11 +216,11 @@ namespace AugustaHIDCfg.MainApp
 
         if (config != null)
         {
-        this.lblSerialNumber.Text = config[0];
-        this.lblFirmwareVersion.Text = config[1];
-        this.lblModelName.Text = config[2];
-        this.lblModelNumber.Text = config[3];
-        this.lblPort.Text = config[4];
+            this.lblSerialNumber.Text = config[0];
+            this.lblFirmwareVersion.Text = config[1];
+            this.lblModelName.Text = config[2];
+            this.lblModelNumber.Text = config[3];
+            this.lblPort.Text = config[4];
         }
 
         // Enable Buttons
@@ -235,19 +236,21 @@ namespace AugustaHIDCfg.MainApp
     private void InitalizeDevice(bool unload = false)
     {
         // Unload Domain
-        if (unload)
+        if (unload && appDomainCfg != null)
         {
-            UnloadPlugin(appDomainDevice);
+            appDomainCfg.UnloadPlugin(appDomainDevice);
 
             // Test Unload
-            TestIfUnloaded(devicePlugin);
+            appDomainCfg.TestIfUnloaded(devicePlugin);
         }
 
+        appDomainCfg = new AppDomainCfg();
+
         // AppDomain Interface
-        appDomainDevice = CreateAppDomain(MODULE_NAME);
+        appDomainDevice = appDomainCfg.CreateAppDomain(MODULE_NAME);
 
         // Load Interface
-        devicePlugin = InstantiatePlugin(MODULE_NAME, appDomainDevice);
+        devicePlugin = appDomainCfg.InstantiatePlugin(MODULE_NAME, appDomainDevice);
 
         // Initialize interface
         if (devicePlugin != null)
@@ -612,97 +615,6 @@ namespace AugustaHIDCfg.MainApp
         }
     }
 
-    #endregion
-
-    /**************************************************************************/
-    // APPDOMAIN ARTIFACTS
-    /**************************************************************************/
-    #region -- appdomain artifacts --
-
-    private AppDomain CreateAppDomain(string dllName)
-    {
-        AppDomainSetup setup = new AppDomainSetup()
-        {
-            ApplicationName = dllName,
-            ConfigurationFile = dllName + ".dll.config",
-            ApplicationBase = AppDomain.CurrentDomain.BaseDirectory
-        };
-
-        AppDomain appDomain = AppDomain.CreateDomain(setup.ApplicationName,
-                                                    AppDomain.CurrentDomain.Evidence,
-                                                    setup);
-
-        // Share App.Config file with all assemblies
-        string configFile = System.Reflection.Assembly.GetExecutingAssembly().Location + ".config";
-        appDomain.SetData("APP_CONFIG_FILE", configFile);
-
-        return appDomain;
-    }
-
-    private IDevicePlugIn InstantiatePlugin(string dllName, AppDomain domain)
-    {
-        IDevicePlugIn plugIn = null;
-
-        string PLUGIN_NAME = " AugustaHIDCfg." + dllName + ".DeviceCfg";
-
-        try
-        {
-            plugIn = domain.CreateInstanceAndUnwrap(dllName, PLUGIN_NAME) as IDevicePlugIn;
-        }
-        catch (Exception e)
-        {
-            Debug.WriteLine("InsantiatePlugin: exception={0}", (object)e.Message);
-        }
-
-        return plugIn;
-    }
-
-    private void UnloadPlugin(AppDomain appdomain)
-    {
-        bool unloaded = false;
-
-        try
-        {
-        AppDomain.Unload(appdomain);
-        unloaded = true;
-        }
-        catch (CannotUnloadAppDomainException)
-        {
-        unloaded = true;
-        }
-        catch (Exception ex)
-        {
-        Debug.WriteLine(ex.Message);
-        }
-
-        if (!unloaded)
-        {
-        Debug.WriteLine("main: appdomain could not be unloaded.");
-        }
-    }
-
-    private void TestIfUnloaded(IDevicePlugIn plugin)
-    {
-        bool unloaded = false;
-
-        try
-        {
-        Debug.WriteLine(plugin.PluginName);
-        }
-        catch (AppDomainUnloadedException)
-        {
-        unloaded = true;
-        }
-        catch (Exception ex)
-        {
-        Debug.WriteLine(ex.Message);
-        }
-
-        if (!unloaded)
-        {
-        Debug.WriteLine("It does not appear that the app domain successfully unloaded.");
-        }
-    }
     #endregion
 
     /**************************************************************************/

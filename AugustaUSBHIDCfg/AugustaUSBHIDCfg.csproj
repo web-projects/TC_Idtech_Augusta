@@ -110,6 +110,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppConfigWrapper.cs" />
+    <Compile Include="AppDomainCfg.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

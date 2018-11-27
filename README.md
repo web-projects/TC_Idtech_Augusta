@@ -27,3 +27,4 @@ This an application to test IDTech Augusta Devices.
 
 * 20181125 - initial repository.
 * 20181126 - added terminal info TLV's.
+* 20181127 - moved AppDomain to its own function.

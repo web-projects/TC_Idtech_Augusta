@@ -3389,7 +3389,14 @@ namespace AugustaHIDCfg.DeviceConfiguration
             }
             else
             {
-                args.payload[0] = "COMMAND EXECUTE FAILED - CODE=" + BitConverter.ToString(response).Replace("-", string.Empty);
+                if(response != null)
+                {
+                    args.payload[0] = "COMMAND EXECUTE FAILED - CODE=" + BitConverter.ToString(response).Replace("-", string.Empty);
+                }
+                else
+                {
+                    args.payload[0] = "COMMAND EXECUTE FAILED - CODE=0x" + string.Format("{0:X}", rt);
+                }
             }
 
             OnSetExecuteResult(args);               
