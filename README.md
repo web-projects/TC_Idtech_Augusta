@@ -23,7 +23,7 @@ This an application to test IDTech Augusta Devices.
 * Code review
 * Other guidelines
 
-### Who do I talk to? ###
+### HISTORY ###
 
-* Repo owner or admin
-* Other community or team contact# Web.Projects@Yahoo.com
+* 20181125 - initial repository.
+* 20181126 - added terminal info TLV's.

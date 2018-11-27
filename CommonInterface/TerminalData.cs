@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Dynamic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,12 +27,15 @@ namespace AugustaHIDCfg.CommonInterface
         
         [JsonProperty(PropertyName = "terminal_data", Order = 1)]
         public string terminal_data { get; set; }
+        [JsonExtensionData]
+        public Dictionary<string, object> tags { get; set; }
         [JsonIgnore]
         private byte [] tlv;
 
         public TerminalData(byte [] param)
         {
             tlv = param;
+            tags = new  Dictionary<string, object>();
         }
 
         public string ConvertTLVToString()
@@ -46,19 +50,61 @@ namespace AugustaHIDCfg.CommonInterface
             string text = "";
             try
             {
-                Dictionary<string, string> dict = Common.processTLVUnencrypted(tlv);
-                Debug.WriteLine("==================== TLV DUMP ====================");
-                foreach (KeyValuePair<string, string> kvp in dict)
+                var values = Common.processTLVUnencrypted(tlv);
+                Debug.WriteLine("====================== TERMINAL DATA : TLV DUMP ======================");
+                foreach (KeyValuePair<string, string> kvp in values)
                 {
+                    tags.Add(kvp.Key, kvp.Value);
                     text += kvp.Key + ": " + kvp.Value + "\r\n";
                     Debug.WriteLine("{0} : {1}", kvp.Key , kvp.Value);
                 }
+                Debug.WriteLine("======================================================================");
             }
             catch(Exception exp)
             {
                 Debug.WriteLine("TerminalDatga::ConvertTLVToValuePairs(): - exception={0}", (object)exp.Message);
             }
             return text;
+        }
+
+        public Dictionary<string, object> GetTags()
+        {
+            return tags;
+        }
+    }
+
+    [Serializable]
+    public class TData : DynamicObject
+    {
+        private string tagName;
+        Dictionary<string, object> dictionary = new Dictionary<string, object>();
+
+        public int Count
+        {
+            get
+            {
+                return dictionary.Count;
+            }
+        }
+
+        public override bool TryGetMember(GetMemberBinder binder, out object result)
+        {
+            string name = binder.Name.ToLower();
+
+            // If the property name is found in a dictionary,
+            // set the result parameter to the property value and return true.
+            return dictionary.TryGetValue(name, out result);
+        }
+
+        public override bool TrySetMember(SetMemberBinder binder, object value)
+        {
+            // Converting the property name to lowercase
+            // so that property names become case-insensitive.
+            dictionary[binder.Name.ToLower()] = value;
+
+            // You can always add a value to a dictionary,
+            // so this method always returns true.
+            return true;
         }
     }
 }

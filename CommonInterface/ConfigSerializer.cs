@@ -180,6 +180,8 @@ namespace AugustaHIDCfg.CommonInterface
       public List<Aid> aid { get; set; }
       public string terminal_ics_type { get; set; }
       public string terminal_data { get; set; }
+      [JsonExtensionData]
+      public Dictionary<string, object> tags { get; set; }
     }
 
     [Serializable]

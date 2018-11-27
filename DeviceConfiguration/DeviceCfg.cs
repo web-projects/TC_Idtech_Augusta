@@ -2310,6 +2310,8 @@ namespace AugustaHIDCfg.DeviceConfiguration
     {
         try
         {
+            //int id = IDT_Augusta.SharedController.emv_retrieveTerminalID();
+
             byte [] tlv = null;
             RETURN_CODE rt = IDT_Augusta.SharedController.emv_retrieveTerminalData(ref tlv);
             
@@ -2318,6 +2320,7 @@ namespace AugustaHIDCfg.DeviceConfiguration
                 TerminalData td = new TerminalData(tlv);
                 string text = td.ConvertTLVToValuePairs();
                 serializer.general_configuration.Contact.terminal_data = td.ConvertTLVToString();
+                serializer.general_configuration.Contact.tags = td.GetTags();
             }
         }
         catch(Exception exp)
