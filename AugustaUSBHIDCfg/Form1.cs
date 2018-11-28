@@ -15,6 +15,7 @@ using HidLibrary;
 using AugustaHIDCfg.DeviceConfiguration;
 using AugustaHIDCfg.CommonInterface;
 using System.Collections;
+using System.IO;
 
 namespace AugustaHIDCfg.MainApp
 {
@@ -33,6 +34,12 @@ namespace AugustaHIDCfg.MainApp
     private IDevicePlugIn devicePlugin;
     private const string MODULE_NAME = "DeviceConfiguration";
 
+    // Application Configuration
+    private bool tc_show_settings_tab;
+    private bool tc_show_configuration_tab;
+    private bool tc_show_raw_mode_tab;
+    private bool tc_show_json_tab;
+
     public Application()
     {
         InitializeComponent();
@@ -43,6 +50,38 @@ namespace AugustaHIDCfg.MainApp
 
         // Disable User Button(s)
         readCardButton.Enabled = false;
+
+        // Settings Tab
+        string show_settings_tab = System.Configuration.ConfigurationManager.AppSettings["tc_show_settings_tab"] ?? "false";
+        bool.TryParse(show_settings_tab, out tc_show_settings_tab);
+        if(!tc_show_settings_tab)
+        {
+            tabControl1.TabPages.Remove(tabPage2);
+        }
+
+        // Configuration Tab
+        string show_configuration_tab = System.Configuration.ConfigurationManager.AppSettings["tc_show_configuration_tab"] ?? "false";
+        bool.TryParse(show_configuration_tab, out tc_show_configuration_tab);
+        if(!tc_show_configuration_tab)
+        {
+            tabControl1.TabPages.Remove(tabPage3);
+        }
+
+        // Raw Mode Tab
+        string show_raw_mode_tab = System.Configuration.ConfigurationManager.AppSettings["tc_show_raw_mode_tab"] ?? "false";
+        bool.TryParse(show_raw_mode_tab, out tc_show_raw_mode_tab);
+        if(!tc_show_raw_mode_tab)
+        {
+            tabControl1.TabPages.Remove(tabPage4);
+        }
+
+        // Json Tab
+        string show_json_tab = System.Configuration.ConfigurationManager.AppSettings["tc_show_json_tab"] ?? "false";
+        bool.TryParse(show_json_tab, out tc_show_json_tab);
+        if(!tc_show_json_tab)
+        {
+            tabControl1.TabPages.Remove(tabPage5);
+        }
 
         // Initialize Device
         InitalizeDevice();
@@ -64,7 +103,14 @@ namespace AugustaHIDCfg.MainApp
 
         if (devicePlugin != null)
         {
-            devicePlugin.SetFormClosing(formClosing);
+            try
+            {
+                devicePlugin.SetFormClosing(formClosing);
+            }
+            catch(Exception ex)
+            {
+                Debug.WriteLine("main: Form1_FormClosing() - exception={0}", (object) ex.Message);
+            }
         }
     }
 
@@ -136,6 +182,11 @@ namespace AugustaHIDCfg.MainApp
         SetExecuteResult(e.payload);
     }
 
+    private void ShowJsonConfigUI(object sender, DeviceEventArgs e)
+    {
+        ShowJsonConfig(e.payload);
+    }
+
     #endregion
 
     /********************************************************************************************************/
@@ -167,6 +218,7 @@ namespace AugustaHIDCfg.MainApp
             this.tabPage2.Enabled = false;
             this.tabPage3.Enabled = false;
             this.tabPage4.Enabled = false;
+            this.tabPage5.Enabled = false;
         }
     }
 
@@ -241,6 +293,7 @@ namespace AugustaHIDCfg.MainApp
         this.tabPage2.Enabled = true;
         this.tabPage3.Enabled = true;
         this.tabPage4.Enabled = true;
+        this.picBoxConfigWait.Visible  = false;
     }
 
     private void InitalizeDevice(bool unload = false)
@@ -286,6 +339,16 @@ namespace AugustaHIDCfg.MainApp
                 devicePlugin.setDeviceConfiguration += new DeviceEventHandler(this.SetDeviceConfigurationUI);
                 devicePlugin.setDeviceMode += new DeviceEventHandler(this.SetDeviceModeUI);
                 devicePlugin.setExecuteResult += new DeviceEventHandler(this.SetExecuteResultUI);
+
+                if(tc_show_json_tab)
+                {
+                    devicePlugin.showJsonConfig += new DeviceEventHandler(this.ShowJsonConfigUI);
+                    this.picBoxJsonWait.Visible = true;
+                    this.Invoke(new MethodInvoker(() =>
+                    {
+                        tabControl1.SelectedTab = this.tabPage5;
+                    }));
+                }
 
                 // Initialize Device
                 devicePlugin.DeviceInit(new AppConfigWrapper());
@@ -343,32 +406,32 @@ namespace AugustaHIDCfg.MainApp
         // Invoker with Parameter(s)
         MethodInvoker mi = () =>
         {
-        try
-        {
-            //string [] data = ((IEnumerable) payload).Cast<object>().Select(x => x == null ? "" : x.ToString()).ToArray();
-            //this.txtCardData.Text = string.Join("", data[0].ToString());
-            this.txtCardData.Text = payload.ToString();
-            this.btnCardRead.Enabled = true;
+            try
+            {
+                //string [] data = ((IEnumerable) payload).Cast<object>().Select(x => x == null ? "" : x.ToString()).ToArray();
+                //this.txtCardData.Text = string.Join("", data[0].ToString());
+                this.txtCardData.Text = payload.ToString();
+                this.btnCardRead.Enabled = true;
 
-            // Enable Tab(s)
-            this.tabPage1.Enabled = true;
-            this.tabPage2.Enabled = true;
-            this.tabPage3.Enabled = true;
-            this.tabPage4.Enabled = true;
-        }
-        catch (Exception exp)
-        {
-            Debug.WriteLine("main: ProcessCardData() - exception={0}", (object)exp.Message);
-        }
+                // Enable Tab(s)
+                this.tabPage1.Enabled = true;
+                this.tabPage2.Enabled = true;
+                this.tabPage3.Enabled = true;
+                this.tabPage4.Enabled = true;
+            }
+            catch (Exception exp)
+            {
+                Debug.WriteLine("main: ProcessCardData() - exception={0}", (object)exp.Message);
+            }
         };
 
         if (InvokeRequired)
         {
-        BeginInvoke(mi);
+            BeginInvoke(mi);
         }
         else
         {
-        Invoke(mi);
+            Invoke(mi);
         }
     }
     
@@ -377,18 +440,24 @@ namespace AugustaHIDCfg.MainApp
         // Invoker with Parameter(s)
         MethodInvoker mi = () =>
         {
-        string [] data = ((IEnumerable) payload).Cast<object>().Select(x => x == null ? "" : x.ToString()).ToArray();
-        this.txtCardData.Text = data[0];
-        this.btnCardRead.Enabled = true;
+            //string [] data = ((IEnumerable) payload).Cast<object>().Select(x => x == null ? "" : x.ToString()).ToArray();
+            this.txtCardData.Text = payload.ToString();
+            this.btnCardRead.Enabled = true;
+
+            // Enable Tab(s)
+            this.tabPage1.Enabled = true;
+            this.tabPage2.Enabled = true;
+            this.tabPage3.Enabled = true;
+            this.tabPage4.Enabled = true;
         };
 
         if (InvokeRequired)
         {
-        BeginInvoke(mi);
+            BeginInvoke(mi);
         }
         else
         {
-        Invoke(mi);
+            Invoke(mi);
         }
     }
 
@@ -399,6 +468,7 @@ namespace AugustaHIDCfg.MainApp
         this.tabPage2.Enabled = false;
         this.tabPage3.Enabled = false;
         this.tabPage4.Enabled = false;
+        this.tabPage5.Enabled = false;
 
         readCardButton.Enabled = false;
 
@@ -411,8 +481,8 @@ namespace AugustaHIDCfg.MainApp
         // MSR Read
         new Thread(() =>
         {
-        Thread.CurrentThread.IsBackground = true;
-        devicePlugin.GetCardData();
+            Thread.CurrentThread.IsBackground = true;
+            devicePlugin.GetCardData();
         }).Start();
     }
 
@@ -438,6 +508,8 @@ namespace AugustaHIDCfg.MainApp
             this.tabPage2.Enabled = true;
             this.tabPage3.Enabled = true;
             this.tabPage4.Enabled = true;
+            this.picBoxConfigWait.Visible = false;
+            this.picBoxJsonWait.Visible = false;
         }
         catch (Exception exp)
         {
@@ -447,11 +519,11 @@ namespace AugustaHIDCfg.MainApp
 
         if (InvokeRequired)
         {
-        BeginInvoke(mi);
+            BeginInvoke(mi);
         }
         else
         {
-        Invoke(mi);
+            Invoke(mi);
         }
     }
 
@@ -460,104 +532,106 @@ namespace AugustaHIDCfg.MainApp
         // Invoker with Parameter(s)
         MethodInvoker mi = () =>
         {
-        try
-        {
-            // update settings in panel
-            string [] data = ((IEnumerable) payload).Cast<object>().Select(x => x == null ? "" : x.ToString()).ToArray();
+            try
+            {
+                // update settings in panel
+                string [] data = ((IEnumerable) payload).Cast<object>().Select(x => x == null ? "" : x.ToString()).ToArray();
 
-            // Expiration Mask
-            this.cBxExpirationMask.Checked = data[0].Equals("Masked", StringComparison.OrdinalIgnoreCase) ? true : false;
+                // Expiration Mask
+                this.cBxExpirationMask.Checked = data[0].Equals("Masked", StringComparison.OrdinalIgnoreCase) ? true : false;
 
-            // PAN Clear Digits
-            this.txtPAN.Text = data[1];
+                // PAN Clear Digits
+                this.txtPAN.Text = data[1];
 
-            // Swipe Force Mask
-            string [] values = data[2].Split(',');
+                // Swipe Force Mask
+                string [] values = data[2].Split(',');
 
-            // Process Individual values
-            string [] track1 = values[0].Split(':');
-            string [] track2 = values[1].Split(':');
-            string [] track3 = values[2].Split(':');
-            string [] track3Card0 = values[3].Split(':');
+                // Process Individual values
+                string [] track1 = values[0].Split(':');
+                string [] track2 = values[1].Split(':');
+                string [] track3 = values[2].Split(':');
+                string [] track3Card0 = values[3].Split(':');
 
-            string t1Value = track1[1].Trim();
-            string t2Value = track2[1].Trim();
-            string t3Value = track3[1].Trim();
-            string t3Card0Value = track3Card0[1].Trim();
+                string t1Value = track1[1].Trim();
+                string t2Value = track2[1].Trim();
+                string t3Value = track3[1].Trim();
+                string t3Card0Value = track3Card0[1].Trim();
 
-            bool t1Val = t1Value.Equals("ON", StringComparison.OrdinalIgnoreCase) ? true : false;
-            bool t2Val = t2Value.Equals("ON", StringComparison.OrdinalIgnoreCase) ? true : false;
-            bool t3Val = t3Value.Equals("ON", StringComparison.OrdinalIgnoreCase) ? true : false;
-            bool t3Card0Val = t3Card0Value.Equals("ON", StringComparison.OrdinalIgnoreCase) ? true : false;
+                bool t1Val = t1Value.Equals("ON", StringComparison.OrdinalIgnoreCase) ? true : false;
+                bool t2Val = t2Value.Equals("ON", StringComparison.OrdinalIgnoreCase) ? true : false;
+                bool t3Val = t3Value.Equals("ON", StringComparison.OrdinalIgnoreCase) ? true : false;
+                bool t3Card0Val = t3Card0Value.Equals("ON", StringComparison.OrdinalIgnoreCase) ? true : false;
 
-            // Compare to existing values
-            if(this.cBxTrack1.Checked != t1Val) {
-            this.cBxTrack1.Checked = t1Val;
+                // Compare to existing values
+                if(this.cBxTrack1.Checked != t1Val) {
+                    this.cBxTrack1.Checked = t1Val;
+                }
+
+                if(this.cBxTrack2.Checked != t2Val) {
+                    this.cBxTrack2.Checked = t2Val;
+                }
+
+                if(this.cBxTrack3.Checked != t3Val) {
+                    this.cBxTrack3.Checked = t3Val;
+                }
+
+                if(this.cBxTrack3Card0.Checked != t3Card0Val) {
+                    this.cBxTrack3Card0.Checked = t3Card0Val;
+                }
+
+                // Swipe Mask
+                values = data[3].Split(',');
+
+                // Process Individual values
+                track1 = values[0].Split(':');
+                track2 = values[1].Split(':');
+                track3 = values[2].Split(':');
+
+                t1Value = track1[1].Trim();
+                t2Value = track2[1].Trim();
+                t3Value = track3[1].Trim();
+
+                t1Val = t1Value.Equals("ON", StringComparison.OrdinalIgnoreCase) ? true : false;
+                t2Val = t2Value.Equals("ON", StringComparison.OrdinalIgnoreCase) ? true : false;
+                t3Val = t3Value.Equals("ON", StringComparison.OrdinalIgnoreCase) ? true : false;
+
+                // Compare to existing values
+                if(this.cBxSwipeMaskTrack1.Checked != t1Val) {
+                    this.cBxSwipeMaskTrack1.Checked = t1Val;
+                }
+
+                if(this.cBxSwipeMaskTrack2.Checked != t2Val) {
+                    this.cBxSwipeMaskTrack2.Checked = t2Val;
+                }
+
+                if(this.cBxSwipeMaskTrack3.Checked != t3Val) {
+                    this.cBxSwipeMaskTrack3.Checked = t3Val;
+                }
+
+                // Enable Button
+                this.btnReadConfig.Enabled = true;
+
+                // Enable Tabs
+                this.tabPage1.Enabled = true;
+                this.tabPage2.Enabled = true;
+                this.tabPage3.Enabled = true;
+                this.tabPage4.Enabled = true;
+                this.picBoxConfigWait.Visible  = false;
+                this.picBoxJsonWait.Visible  = false;
             }
-
-            if(this.cBxTrack2.Checked != t2Val) {
-            this.cBxTrack2.Checked = t2Val;
+            catch (Exception exp)
+            {
+                Debug.WriteLine("main: SetDeviceConfiguration() - exception={0}", (object)exp.Message);
             }
-
-            if(this.cBxTrack3.Checked != t3Val) {
-            this.cBxTrack3.Checked = t3Val;
-            }
-
-            if(this.cBxTrack3Card0.Checked != t3Card0Val) {
-            this.cBxTrack3Card0.Checked = t3Card0Val;
-            }
-
-            // Swipe Mask
-            values = data[3].Split(',');
-
-            // Process Individual values
-            track1 = values[0].Split(':');
-            track2 = values[1].Split(':');
-            track3 = values[2].Split(':');
-
-            t1Value = track1[1].Trim();
-            t2Value = track2[1].Trim();
-            t3Value = track3[1].Trim();
-
-            t1Val = t1Value.Equals("ON", StringComparison.OrdinalIgnoreCase) ? true : false;
-            t2Val = t2Value.Equals("ON", StringComparison.OrdinalIgnoreCase) ? true : false;
-            t3Val = t3Value.Equals("ON", StringComparison.OrdinalIgnoreCase) ? true : false;
-
-            // Compare to existing values
-            if(this.cBxSwipeMaskTrack1.Checked != t1Val) {
-            this.cBxSwipeMaskTrack1.Checked = t1Val;
-            }
-
-            if(this.cBxSwipeMaskTrack2.Checked != t2Val) {
-            this.cBxSwipeMaskTrack2.Checked = t2Val;
-            }
-
-            if(this.cBxSwipeMaskTrack3.Checked != t3Val) {
-            this.cBxSwipeMaskTrack3.Checked = t3Val;
-            }
-
-            // Enable Button
-            this.btnReadConfig.Enabled = true;
-
-            // Enable Tabs
-            this.tabPage1.Enabled = true;
-            this.tabPage2.Enabled = true;
-            this.tabPage3.Enabled = true;
-            this.tabPage4.Enabled = true;
-        }
-        catch (Exception exp)
-        {
-            Debug.WriteLine("main: SetDeviceConfiguration() - exception={0}", (object)exp.Message);
-        }
         };
 
         if (InvokeRequired)
         {
-        BeginInvoke(mi);
+            BeginInvoke(mi);
         }
         else
         {
-        Invoke(mi);
+            Invoke(mi);
         }
     }
 
@@ -571,6 +645,45 @@ namespace AugustaHIDCfg.MainApp
                 string [] data = ((IEnumerable) payload).Cast<object>().Select(x => x == null ? "" : x.ToString()).ToArray();
                 this.btnMode.Text = data[0];
                 this.btnMode.Visible = true;
+
+                if(data[0].Contains("HID"))
+                {
+                    if(tabControl1.Contains(tabPage2))
+                    {
+                        tabControl1.TabPages.Remove(tabPage2);
+                    }
+                    if(tabControl1.Contains(tabPage3))
+                    {
+                        tabControl1.TabPages.Remove(tabPage3);
+                    }
+                    if(tabControl1.Contains(tabPage4))
+                    {
+                        tabControl1.TabPages.Remove(tabPage4);
+                    }
+                    if(tabControl1.Contains(tabPage5))
+                    {
+                        tabControl1.TabPages.Remove(tabPage5);
+                    }
+                }
+                else
+                {
+                    if(!tabControl1.Contains(tabPage2) && tc_show_settings_tab)
+                    {
+                        tabControl1.TabPages.Add(tabPage2);
+                    }
+                    if(!tabControl1.Contains(tabPage3) && tc_show_configuration_tab)
+                    {
+                        tabControl1.TabPages.Add(tabPage3);
+                    }
+                    if(!tabControl1.Contains(tabPage4) && tc_show_raw_mode_tab)
+                    {
+                        tabControl1.TabPages.Add(tabPage4);
+                    }
+                    if(!tabControl1.Contains(tabPage5) && tc_show_json_tab)
+                    {
+                        tabControl1.TabPages.Add(tabPage5);
+                    }
+                }
             }
             catch (Exception exp)
             {
@@ -602,6 +715,37 @@ namespace AugustaHIDCfg.MainApp
             catch (Exception exp)
             {
                 Debug.WriteLine("main: SetDeviceConfiguration() - exception={0}", (object)exp.Message);
+            }
+        };
+
+        if (InvokeRequired)
+        {
+            BeginInvoke(mi);
+        }
+        else
+        {
+            Invoke(mi);
+        }
+    }
+
+    private void ShowJsonConfig(object payload)
+    {
+        // Invoker with Parameter(s)
+        MethodInvoker mi = () =>
+        {
+            try
+            {
+                if(tc_show_json_tab)
+                {
+                    string [] filename = ((IEnumerable) payload).Cast<object>().Select(x => x == null ? "" : x.ToString()).ToArray();
+                    this.txtJson.Text = File.ReadAllText(filename[0]);
+                    tabControl1.SelectedTab = this.tabPage5;
+                    this.picBoxJsonWait.Visible = false;
+                }
+            }
+            catch (Exception exp)
+            {
+                Debug.WriteLine("main: ShowJsonConfig() - exception={0}", (object)exp.Message);
             }
         };
 
@@ -672,13 +816,20 @@ namespace AugustaHIDCfg.MainApp
         // Disable Tabs
         this.tabPage1.Enabled = false;
         this.tabPage2.Enabled = false;
-        this.tabPage3.Enabled = false;
+        //this.tabPage3.Enabled = false;
         this.tabPage4.Enabled = false;
+
+        this.Invoke(new MethodInvoker(() =>
+        {
+            this.picBoxConfigWait.Visible  = true;
+            this.picBoxConfigWait.Refresh();
+            System.Windows.Forms.Application.DoEvents();
+        }));
 
         // EXPIRATION MASK
         configExpirationMask = new List<MsrConfigItem>
         {
-        { new MsrConfigItem() { Name="expirationmask", Id=(int)EXPIRATION_MASK.MASK, Value=string.Format("{0}", this.cBxExpirationMask.Checked.ToString()) }},
+            { new MsrConfigItem() { Name="expirationmask", Id=(int)EXPIRATION_MASK.MASK, Value=string.Format("{0}", this.cBxExpirationMask.Checked.ToString()) }},
         };
 
         // PAN DIGITS
@@ -690,18 +841,18 @@ namespace AugustaHIDCfg.MainApp
         // SWIPE FORCE
         configSwipeForceEncryption = new List<MsrConfigItem>
         {
-        { new MsrConfigItem() { Name="track1",      Id=(int)SWIPE_FORCE_ENCRYPTION.TRACK1, Value=string.Format("{0}",      this.cBxTrack1.Checked.ToString()) }},
-        { new MsrConfigItem() { Name="track2",      Id=(int)SWIPE_FORCE_ENCRYPTION.TRACK2, Value=string.Format("{0}",      this.cBxTrack2.Checked.ToString()) }},
-        { new MsrConfigItem() { Name="track3",      Id=(int)SWIPE_FORCE_ENCRYPTION.TRACK3, Value=string.Format("{0}",      this.cBxTrack3.Checked.ToString()) }},
-        { new MsrConfigItem() { Name="track3Card0", Id=(int)SWIPE_FORCE_ENCRYPTION.TRACK3CARD0, Value=string.Format("{0}", this.cBxTrack3Card0.Checked.ToString()) }}
+            { new MsrConfigItem() { Name="track1",      Id=(int)SWIPE_FORCE_ENCRYPTION.TRACK1, Value=string.Format("{0}",      this.cBxTrack1.Checked.ToString()) }},
+            { new MsrConfigItem() { Name="track2",      Id=(int)SWIPE_FORCE_ENCRYPTION.TRACK2, Value=string.Format("{0}",      this.cBxTrack2.Checked.ToString()) }},
+            { new MsrConfigItem() { Name="track3",      Id=(int)SWIPE_FORCE_ENCRYPTION.TRACK3, Value=string.Format("{0}",      this.cBxTrack3.Checked.ToString()) }},
+            { new MsrConfigItem() { Name="track3Card0", Id=(int)SWIPE_FORCE_ENCRYPTION.TRACK3CARD0, Value=string.Format("{0}", this.cBxTrack3Card0.Checked.ToString()) }}
         };
 
         // SWIPE MASK
         configSwipeMask = new List<MsrConfigItem>
         {
-        { new MsrConfigItem() { Name="track1", Id=(int)SWIPE_MASK.TRACK1, Value=string.Format("{0}", this.cBxSwipeMaskTrack1.Checked.ToString()) }},
-        { new MsrConfigItem() { Name="track2", Id=(int)SWIPE_MASK.TRACK2, Value=string.Format("{0}", this.cBxSwipeMaskTrack2.Checked.ToString()) }},
-        { new MsrConfigItem() { Name="track3", Id=(int)SWIPE_MASK.TRACK3, Value=string.Format("{0}", this.cBxSwipeMaskTrack3.Checked.ToString()) }}
+            { new MsrConfigItem() { Name="track1", Id=(int)SWIPE_MASK.TRACK1, Value=string.Format("{0}", this.cBxSwipeMaskTrack1.Checked.ToString()) }},
+            { new MsrConfigItem() { Name="track2", Id=(int)SWIPE_MASK.TRACK2, Value=string.Format("{0}", this.cBxSwipeMaskTrack2.Checked.ToString()) }},
+            { new MsrConfigItem() { Name="track3", Id=(int)SWIPE_MASK.TRACK3, Value=string.Format("{0}", this.cBxSwipeMaskTrack3.Checked.ToString()) }}
         };
 
         // Build Payload Package
@@ -710,7 +861,7 @@ namespace AugustaHIDCfg.MainApp
         // Save to Configuration File
         if(e != null)
         {
-        SaveConfiguration();
+            SaveConfiguration();
         }
 
         // Settings Read
@@ -821,7 +972,7 @@ namespace AugustaHIDCfg.MainApp
         }
     }
 
-    private void button1_Click(object sender, EventArgs e)
+    private void ExecuteCommand_Click(object sender, EventArgs e)
     {
         string command = this.txtCommand.Text;
 
@@ -832,8 +983,17 @@ namespace AugustaHIDCfg.MainApp
         }).Start();
 
         this.btnExecute.Enabled = false;
+        this.txtCommandResult.Text = "";
+    }
+
+    private void btnCloseJson_Click(object sender, EventArgs e)
+    {
+        if(tc_show_json_tab && tabControl1.Contains(tabPage5))
+        {
+            tabControl1.TabPages.Remove(tabPage5);
+        }
     }
 
     #endregion
-    }
+  }
 }

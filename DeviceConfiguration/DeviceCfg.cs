@@ -68,6 +68,7 @@ namespace AugustaHIDCfg.DeviceConfiguration
     public event DeviceEventHandler setDeviceConfiguration;
     public event DeviceEventHandler setDeviceMode;
     public event DeviceEventHandler setExecuteResult;
+    public event DeviceEventHandler showJsonConfig;
 
     private bool useUniversalSDK;
     private bool attached;
@@ -178,15 +179,13 @@ namespace AugustaHIDCfg.DeviceConfiguration
             // this is where we start listening for data
             //device.ReadReport(OnReport); 
 
-            if (!useUniversalSDK)
+            //if (!useUniversalSDK)
+            if(deviceInfo.deviceMode != IDTECH_DevicePID.AUGUSTA_USB)
             {
               //deviceInfo.SecurityLevel = SecurityLevelNumber.NotChecked;
 
               // Get Device Information
-              if (PopulateDeviceInfo())
-              {
-
-              }
+              PopulateDeviceInfo();
             }
             else
             {
@@ -309,6 +308,14 @@ namespace AugustaHIDCfg.DeviceConfiguration
         if (setExecuteResult != null)
         {
           setExecuteResult(this, e);
+        }
+    }
+
+    protected virtual void OnShowJsonConfig(DeviceEventArgs e) 
+    {
+        if (showJsonConfig != null)
+        {
+          showJsonConfig(this, e);
         }
     }
     
@@ -1097,26 +1104,29 @@ namespace AugustaHIDCfg.DeviceConfiguration
             Debug.WriteLine("DeviceCfg::SetDeviceConfig: failed to get serialNumber e={0}", rt);
           }
 
-          string firmwareVersion = "";
-          rt = IDT_Augusta.SharedController.device_getFirmwareVersion(ref firmwareVersion);
-
-          if (rt == RETURN_CODE.RETURN_CODE_DO_SUCCESS)
+          if(deviceInfo.deviceMode == IDTECH_DevicePID.AUGUSTA_USB)
           {
-              deviceInfo.FirmwareVersion = ParseFirmwareVersion(firmwareVersion);
-              Debug.WriteLine("device INFO[Firmware Version]: ", deviceInfo.FirmwareVersion);
+              string firmwareVersion = "";
+              rt = IDT_Augusta.SharedController.device_getFirmwareVersion(ref firmwareVersion);
 
-              deviceInfo.Port = firmwareVersion.Substring(firmwareVersion.IndexOf("USB", StringComparison.Ordinal), 7);
-              Debug.WriteLine("device INFO[Port]: ", deviceInfo.Port);
-          }
+              if (rt == RETURN_CODE.RETURN_CODE_DO_SUCCESS)
+              {
+                  deviceInfo.FirmwareVersion = ParseFirmwareVersion(firmwareVersion);
+                  Debug.WriteLine("device INFO[Firmware Version]: ", deviceInfo.FirmwareVersion);
 
-          deviceInfo.ModelName = IDTechSDK.Profile.IDT_DEVICE_String(deviceType, deviceConnect);
-          Debug.WriteLine("device INFO[Model Name]: " + deviceInfo.ModelName);
+                  deviceInfo.Port = firmwareVersion.Substring(firmwareVersion.IndexOf("USB", StringComparison.Ordinal), 7);
+                  Debug.WriteLine("device INFO[Port]: ", deviceInfo.Port);
+              }
+
+              deviceInfo.ModelName = IDTechSDK.Profile.IDT_DEVICE_String(deviceType, deviceConnect);
+              Debug.WriteLine("device INFO[Model Name]: " + deviceInfo.ModelName);
  
-          rt = IDT_Augusta.SharedController.config_getModelNumber(ref deviceInfo.ModelNumber);
+              rt = IDT_Augusta.SharedController.config_getModelNumber(ref deviceInfo.ModelNumber);
 
-          if (RETURN_CODE.RETURN_CODE_DO_SUCCESS == rt)
-          {
-              Debug.WriteLine("device INFO[Model Number]: " + deviceInfo.ModelNumber);
+              if (RETURN_CODE.RETURN_CODE_DO_SUCCESS == rt)
+              {
+                  Debug.WriteLine("device INFO[Model Number]: " + deviceInfo.ModelNumber);
+              }
           }
 
           // Enable Form Buttons
@@ -2189,8 +2199,8 @@ namespace AugustaHIDCfg.DeviceConfiguration
 
         // Terminal Info
         //if(_configWrapper.HasKey("read_terminal_info"))
-        string enable_read_terminal_info = _configWrapper.GetAppSetting("read_terminal_info") ?? "true";
-        //string enable_read_terminal_info = System.Configuration.ConfigurationManager.AppSettings["read_terminal_info"] ?? "true";
+        string enable_read_terminal_info = _configWrapper.GetAppSetting("tc_read_terminal_info") ?? "true";
+        //string enable_read_terminal_info = System.Configuration.ConfigurationManager.AppSettings["tc_read_terminal_info"] ?? "true";
         bool read_terminal_info;
         bool.TryParse(enable_read_terminal_info, out read_terminal_info);
         if(read_terminal_info)
@@ -2199,8 +2209,8 @@ namespace AugustaHIDCfg.DeviceConfiguration
         }
  
         // Terminal Information
-        string enable_read_terminal_data = _configWrapper.GetAppSetting("read_terminal_data") ?? "true";
-        //string enable_read_terminal_data = System.Configuration.ConfigurationManager.AppSettings["read_terminal_data"] ?? "true";
+        string enable_read_terminal_data = _configWrapper.GetAppSetting("tc_read_terminal_data") ?? "true";
+        //string enable_read_terminal_data = System.Configuration.ConfigurationManager.AppSettings["tc_read_terminal_data"] ?? "true";
         bool read_terminal_data;
         bool.TryParse(enable_read_terminal_data, out read_terminal_data);
         if(read_terminal_data)
@@ -2209,8 +2219,8 @@ namespace AugustaHIDCfg.DeviceConfiguration
         }
 
         // Encryption Control
-        string enable_read_encryption =  _configWrapper.GetAppSetting("read_encryption") ?? "true";
-        //string enable_read_encryption = System.Configuration.ConfigurationManager.AppSettings["read_encryption"] ?? "true";
+        string enable_read_encryption =  _configWrapper.GetAppSetting("tc_read_encryption") ?? "true";
+        //string enable_read_encryption = System.Configuration.ConfigurationManager.AppSettings["tc_read_encryption"] ?? "true";
         bool read_encryption;
         bool.TryParse(enable_read_encryption, out read_encryption);
         if(read_encryption)
@@ -2219,8 +2229,8 @@ namespace AugustaHIDCfg.DeviceConfiguration
         }
 
         // Device Configuration: contact:capk
-        string enable_read_capk_settings =  _configWrapper.GetAppSetting("read_capk_settings") ?? "true";
-        //string enable_read_capk_settings = System.Configuration.ConfigurationManager.AppSettings["read_capk_settings"] ?? "true";
+        string enable_read_capk_settings =  _configWrapper.GetAppSetting("tc_read_capk_settings") ?? "true";
+        //string enable_read_capk_settings = System.Configuration.ConfigurationManager.AppSettings["tc_read_capk_settings"] ?? "true";
         bool read_capk_settings;
         bool.TryParse(enable_read_capk_settings, out read_capk_settings);
         if(read_capk_settings)
@@ -2229,8 +2239,8 @@ namespace AugustaHIDCfg.DeviceConfiguration
         }
 
         // Device Configuration: contact:aid
-        string enable_read_aid_settings =  _configWrapper.GetAppSetting("read_aid_settings") ?? "true";
-        //string enable_read_aid_settings = System.Configuration.ConfigurationManager.AppSettings["read_aid_settings"] ?? "true";
+        string enable_read_aid_settings =  _configWrapper.GetAppSetting("tc_read_aid_settings") ?? "true";
+        //string enable_read_aid_settings = System.Configuration.ConfigurationManager.AppSettings["tc_read_aid_settings"] ?? "true";
         bool read_aid_settings;
         bool.TryParse(enable_read_aid_settings, out read_aid_settings);
         if(read_aid_settings)
@@ -2239,8 +2249,8 @@ namespace AugustaHIDCfg.DeviceConfiguration
         }
 
         // MSR Settings
-        string enable_read_msr_settings =  _configWrapper.GetAppSetting("read_msr_settings") ?? "true";
-        //string enable_read_msr_settings = System.Configuration.ConfigurationManager.AppSettings["read_msr_settings"] ?? "true";
+        string enable_read_msr_settings =  _configWrapper.GetAppSetting("tc_read_msr_settings") ?? "true";
+        //string enable_read_msr_settings = System.Configuration.ConfigurationManager.AppSettings["tc_read_msr_settings"] ?? "true";
         bool read_msr_settings;
         bool.TryParse(enable_read_msr_settings, out read_msr_settings);
         if(read_msr_settings)
@@ -2250,6 +2260,11 @@ namespace AugustaHIDCfg.DeviceConfiguration
 
         // Update configuration file
         serializer.WriteConfig();
+
+        // Display JSON Config to User
+        DeviceEventArgs args = new DeviceEventArgs();
+        args.payload[0] = serializer.GetFileName();
+        OnShowJsonConfig(args);
     }
 
     private void GetCompany()

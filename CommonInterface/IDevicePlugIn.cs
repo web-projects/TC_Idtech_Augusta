@@ -34,6 +34,7 @@ namespace AugustaHIDCfg.CommonInterface
     event DeviceEventHandler setDeviceConfiguration;
     event DeviceEventHandler setDeviceMode;
     event DeviceEventHandler setExecuteResult;
+    event DeviceEventHandler showJsonConfig;
 
     // INITIALIZATION
     string PluginName { get; }

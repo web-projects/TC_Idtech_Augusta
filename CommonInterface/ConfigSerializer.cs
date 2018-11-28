@@ -17,7 +17,8 @@ namespace AugustaHIDCfg.CommonInterface
     {
         private const string JSON_CONFIG = "configuration.json";
         private ConfigSerializer cfgMetaObject;
-            
+        private string fileName;
+        
         [JsonProperty(PropertyName = "config_meta", Order = 1)]
         public config_meta config_meta { get; set; }
 
@@ -36,9 +37,9 @@ namespace AugustaHIDCfg.CommonInterface
             {
                 JsonSerializer serializer = new JsonSerializer();
                 string path = System.IO.Directory.GetCurrentDirectory(); 
-                string FILE_PATH = path + "\\" + JSON_CONFIG;
-                string FILE_CFG = File.ReadAllText(FILE_PATH);
-                //byte[] data = File.ReadAllBytes(FILE_PATH);
+                fileName = path + "\\" + JSON_CONFIG;
+                string FILE_CFG = File.ReadAllText(fileName);
+                //byte[] data = File.ReadAllBytes(fileName);
                 //var FILE_CFG = Encoding.UTF8.GetString(data);
 
                 cfgMetaObject = JsonConvert.DeserializeObject<ConfigSerializer>(FILE_CFG);
@@ -111,9 +112,9 @@ namespace AugustaHIDCfg.CommonInterface
 
                     JsonSerializer serializer = new JsonSerializer();
                     string path = System.IO.Directory.GetCurrentDirectory(); 
-                    string FILE_PATH = path + "\\" + JSON_CONFIG;
+                    fileName = path + "\\" + JSON_CONFIG;
 
-                    using (StreamWriter sw = new StreamWriter(FILE_PATH))
+                    using (StreamWriter sw = new StreamWriter(fileName))
                     using (JsonWriter writer = new JsonTextWriter(sw))
                     {
                        serializer.Formatting = Formatting.Indented;
@@ -125,6 +126,11 @@ namespace AugustaHIDCfg.CommonInterface
             {
                 Debug.WriteLine("JsonSerializer: exception: {0}", ex);
             }
+        }
+
+        public string GetFileName()
+        {
+            return fileName;
         }
     }
 

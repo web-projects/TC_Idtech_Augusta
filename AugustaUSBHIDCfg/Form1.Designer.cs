@@ -59,6 +59,7 @@
             this.label7 = new System.Windows.Forms.Label();
             this.btnReadConfig = new System.Windows.Forms.Button();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.picBoxConfigWait = new System.Windows.Forms.PictureBox();
             this.btnConfigure = new System.Windows.Forms.Button();
             this.panel3 = new System.Windows.Forms.Panel();
             this.cBxSwipeMaskTrack3 = new System.Windows.Forms.CheckBox();
@@ -74,23 +75,30 @@
             this.cBxTrack2 = new System.Windows.Forms.CheckBox();
             this.cBxTrack1 = new System.Windows.Forms.CheckBox();
             this.label11 = new System.Windows.Forms.Label();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.tabPage4 = new System.Windows.Forms.TabPage();
-            this.panel4 = new System.Windows.Forms.Panel();
-            this.label15 = new System.Windows.Forms.Label();
-            this.txtCommand = new System.Windows.Forms.TextBox();
             this.btnExecute = new System.Windows.Forms.Button();
+            this.panel4 = new System.Windows.Forms.Panel();
             this.txtCommandResult = new System.Windows.Forms.TextBox();
+            this.txtCommand = new System.Windows.Forms.TextBox();
+            this.label15 = new System.Windows.Forms.Label();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.picBoxJsonWait = new System.Windows.Forms.PictureBox();
+            this.txtJson = new System.Windows.Forms.TextBox();
+            this.btnCloseJson = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.panel2.SuspendLayout();
             this.tabPage3.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.picBoxConfigWait)).BeginInit();
             this.panel3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.tabPage4.SuspendLayout();
             this.panel4.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            this.tabPage5.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.picBoxJsonWait)).BeginInit();
             this.SuspendLayout();
             // 
             // label1
@@ -185,11 +193,11 @@
             // 
             // btnCardRead
             // 
-            this.btnCardRead.Location = new System.Drawing.Point(309, 428);
+            this.btnCardRead.Location = new System.Drawing.Point(309, 483);
             this.btnCardRead.Name = "btnCardRead";
             this.btnCardRead.Size = new System.Drawing.Size(75, 23);
             this.btnCardRead.TabIndex = 11;
-            this.btnCardRead.Text = "Read";
+            this.btnCardRead.Text = "MSR";
             this.btnCardRead.UseVisualStyleBackColor = true;
             this.btnCardRead.Click += new System.EventHandler(this.CardRead_Click);
             // 
@@ -199,7 +207,8 @@
             this.txtCardData.Multiline = true;
             this.txtCardData.Name = "txtCardData";
             this.txtCardData.ReadOnly = true;
-            this.txtCardData.Size = new System.Drawing.Size(671, 179);
+            this.txtCardData.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.txtCardData.Size = new System.Drawing.Size(671, 231);
             this.txtCardData.TabIndex = 12;
             // 
             // panel1
@@ -217,10 +226,11 @@
             this.tabControl1.Controls.Add(this.tabPage2);
             this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Controls.Add(this.tabPage4);
+            this.tabControl1.Controls.Add(this.tabPage5);
             this.tabControl1.Location = new System.Drawing.Point(12, 53);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(700, 485);
+            this.tabControl1.Size = new System.Drawing.Size(700, 544);
             this.tabControl1.TabIndex = 14;
             // 
             // tabPage1
@@ -241,14 +251,14 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(692, 459);
+            this.tabPage1.Size = new System.Drawing.Size(692, 518);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Application";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
             // btnMode
             // 
-            this.btnMode.Location = new System.Drawing.Point(607, 428);
+            this.btnMode.Location = new System.Drawing.Point(607, 483);
             this.btnMode.Name = "btnMode";
             this.btnMode.Size = new System.Drawing.Size(75, 23);
             this.btnMode.TabIndex = 14;
@@ -263,7 +273,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(692, 459);
+            this.tabPage2.Size = new System.Drawing.Size(692, 518);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Settings";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -388,15 +398,32 @@
             // 
             // tabPage3
             // 
+            this.tabPage3.Controls.Add(this.picBoxConfigWait);
             this.tabPage3.Controls.Add(this.btnConfigure);
             this.tabPage3.Controls.Add(this.panel3);
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Size = new System.Drawing.Size(692, 459);
+            this.tabPage3.Size = new System.Drawing.Size(692, 518);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Configuration";
             this.tabPage3.UseVisualStyleBackColor = true;
             this.tabPage3.Enter += new System.EventHandler(this.OnConfigurationControlActive);
+            // 
+            // picBoxConfigWait
+            // 
+            this.picBoxConfigWait.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.picBoxConfigWait.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.picBoxConfigWait.Image = ((System.Drawing.Image)(resources.GetObject("picBoxConfigWait.Image")));
+            this.picBoxConfigWait.Location = new System.Drawing.Point(14, 12);
+            this.picBoxConfigWait.Name = "picBoxConfigWait";
+            this.picBoxConfigWait.Size = new System.Drawing.Size(678, 487);
+            this.picBoxConfigWait.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
+            this.picBoxConfigWait.TabIndex = 2;
+            this.picBoxConfigWait.TabStop = false;
+            this.picBoxConfigWait.Visible = false;
+            this.picBoxConfigWait.WaitOnLoad = true;
             // 
             // btnConfigure
             // 
@@ -555,25 +582,27 @@
             this.label11.TabIndex = 0;
             this.label11.Text = "Swipe Force Mask:";
             // 
-            // pictureBox1
-            // 
-            this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
-            this.pictureBox1.Location = new System.Drawing.Point(12, 3);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(696, 46);
-            this.pictureBox1.TabIndex = 15;
-            this.pictureBox1.TabStop = false;
-            // 
             // tabPage4
             // 
             this.tabPage4.Controls.Add(this.btnExecute);
             this.tabPage4.Controls.Add(this.panel4);
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
-            this.tabPage4.Size = new System.Drawing.Size(692, 459);
+            this.tabPage4.Size = new System.Drawing.Size(692, 518);
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "Raw Mode";
             this.tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // btnExecute
+            // 
+            this.btnExecute.Location = new System.Drawing.Point(309, 411);
+            this.btnExecute.Name = "btnExecute";
+            this.btnExecute.Size = new System.Drawing.Size(75, 23);
+            this.btnExecute.TabIndex = 1;
+            this.btnExecute.Text = "Execute";
+            this.btnExecute.UseVisualStyleBackColor = true;
+            this.btnExecute.Visible = false;
+            this.btnExecute.Click += new System.EventHandler(this.ExecuteCommand_Click);
             // 
             // panel4
             // 
@@ -585,34 +614,6 @@
             this.panel4.Size = new System.Drawing.Size(626, 346);
             this.panel4.TabIndex = 0;
             // 
-            // label15
-            // 
-            this.label15.AutoSize = true;
-            this.label15.Location = new System.Drawing.Point(52, 47);
-            this.label15.Name = "label15";
-            this.label15.Size = new System.Drawing.Size(66, 13);
-            this.label15.TabIndex = 0;
-            this.label15.Text = "COMMAND:";
-            // 
-            // txtCommand
-            // 
-            this.txtCommand.Location = new System.Drawing.Point(139, 44);
-            this.txtCommand.Name = "txtCommand";
-            this.txtCommand.Size = new System.Drawing.Size(222, 20);
-            this.txtCommand.TabIndex = 1;
-            this.txtCommand.TextChanged += new System.EventHandler(this.OnTextChanged);
-            // 
-            // btnExecute
-            // 
-            this.btnExecute.Location = new System.Drawing.Point(309, 411);
-            this.btnExecute.Name = "btnExecute";
-            this.btnExecute.Size = new System.Drawing.Size(75, 23);
-            this.btnExecute.TabIndex = 1;
-            this.btnExecute.Text = "Execute";
-            this.btnExecute.UseVisualStyleBackColor = true;
-            this.btnExecute.Visible = false;
-            this.btnExecute.Click += new System.EventHandler(this.button1_Click);
-            // 
             // txtCommandResult
             // 
             this.txtCommandResult.Location = new System.Drawing.Point(55, 120);
@@ -622,11 +623,85 @@
             this.txtCommandResult.Size = new System.Drawing.Size(507, 180);
             this.txtCommandResult.TabIndex = 2;
             // 
+            // txtCommand
+            // 
+            this.txtCommand.Location = new System.Drawing.Point(139, 44);
+            this.txtCommand.Name = "txtCommand";
+            this.txtCommand.Size = new System.Drawing.Size(222, 20);
+            this.txtCommand.TabIndex = 1;
+            this.txtCommand.TextChanged += new System.EventHandler(this.OnTextChanged);
+            // 
+            // label15
+            // 
+            this.label15.AutoSize = true;
+            this.label15.Location = new System.Drawing.Point(52, 47);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(66, 13);
+            this.label15.TabIndex = 0;
+            this.label15.Text = "COMMAND:";
+            // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
+            this.pictureBox1.Location = new System.Drawing.Point(12, 3);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(696, 46);
+            this.pictureBox1.TabIndex = 15;
+            this.pictureBox1.TabStop = false;
+            // 
+            // tabPage5
+            // 
+            this.tabPage5.Controls.Add(this.picBoxJsonWait);
+            this.tabPage5.Controls.Add(this.btnCloseJson);
+            this.tabPage5.Controls.Add(this.txtJson);
+            this.tabPage5.Location = new System.Drawing.Point(4, 22);
+            this.tabPage5.Name = "tabPage5";
+            this.tabPage5.Size = new System.Drawing.Size(692, 518);
+            this.tabPage5.TabIndex = 4;
+            this.tabPage5.Text = "Json";
+            this.tabPage5.UseVisualStyleBackColor = true;
+            // 
+            // picBoxJsonWait
+            // 
+            this.picBoxJsonWait.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.picBoxJsonWait.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.picBoxJsonWait.Image = ((System.Drawing.Image)(resources.GetObject("picBoxJsonWait.Image")));
+            this.picBoxJsonWait.Location = new System.Drawing.Point(0, 17);
+            this.picBoxJsonWait.Name = "picBoxJsonWait";
+            this.picBoxJsonWait.Size = new System.Drawing.Size(689, 487);
+            this.picBoxJsonWait.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
+            this.picBoxJsonWait.TabIndex = 2;
+            this.picBoxJsonWait.TabStop = false;
+            this.picBoxJsonWait.Visible = false;
+            this.picBoxJsonWait.WaitOnLoad = true;
+            // 
+            // txtJson
+            // 
+            this.txtJson.Location = new System.Drawing.Point(7, 17);
+            this.txtJson.Multiline = true;
+            this.txtJson.Name = "txtJson";
+            this.txtJson.ReadOnly = true;
+            this.txtJson.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.txtJson.Size = new System.Drawing.Size(682, 443);
+            this.txtJson.TabIndex = 4;
+            // 
+            // btnCloseJson
+            // 
+            this.btnCloseJson.Location = new System.Drawing.Point(305, 479);
+            this.btnCloseJson.Name = "btnCloseJson";
+            this.btnCloseJson.Size = new System.Drawing.Size(82, 25);
+            this.btnCloseJson.TabIndex = 0;
+            this.btnCloseJson.Text = "CLOSE";
+            this.btnCloseJson.UseVisualStyleBackColor = true;
+            this.btnCloseJson.Click += new System.EventHandler(this.btnCloseJson_Click);
+            // 
             // Application
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(721, 553);
+            this.ClientSize = new System.Drawing.Size(721, 609);
             this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.tabControl1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
@@ -642,12 +717,16 @@
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
             this.tabPage3.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.picBoxConfigWait)).EndInit();
             this.panel3.ResumeLayout(false);
             this.panel3.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.tabPage4.ResumeLayout(false);
             this.panel4.ResumeLayout(false);
             this.panel4.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            this.tabPage5.ResumeLayout(false);
+            this.tabPage5.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.picBoxJsonWait)).EndInit();
             this.ResumeLayout(false);
 
     }
@@ -705,6 +784,11 @@
         private System.Windows.Forms.TextBox txtCommand;
         private System.Windows.Forms.Label label15;
         private System.Windows.Forms.TextBox txtCommandResult;
+        private System.Windows.Forms.PictureBox picBoxConfigWait;
+        private System.Windows.Forms.TabPage tabPage5;
+        private System.Windows.Forms.PictureBox picBoxJsonWait;
+        private System.Windows.Forms.Button btnCloseJson;
+        private System.Windows.Forms.TextBox txtJson;
     }
 }
 
