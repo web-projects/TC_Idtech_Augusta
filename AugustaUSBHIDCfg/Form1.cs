@@ -24,7 +24,7 @@ namespace AugustaHIDCfg.MainApp
 
     private bool formClosing = false;
 
-    public static Button readMSRButton;
+    public static Button readCardButton;
     public static Button getConfigButton;
 
     // AppDomain Artifacts
@@ -39,10 +39,10 @@ namespace AugustaHIDCfg.MainApp
 
         this.Text = "IDTECH Device Discovery Application";
 
-        readMSRButton = this.btnCardRead;
+        readCardButton = this.btnCardRead;
 
         // Disable User Button(s)
-        readMSRButton.Enabled = false;
+        readCardButton.Enabled = false;
 
         // Initialize Device
         InitalizeDevice();
@@ -56,6 +56,16 @@ namespace AugustaHIDCfg.MainApp
     private void txtPAN_TextChanged(object sender, EventArgs e)
     {
         // Validate INPUT
+    }
+
+    private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+    {
+        formClosing = true;
+
+        if (devicePlugin != null)
+        {
+            devicePlugin.SetFormClosing(formClosing);
+        }
     }
 
     #endregion
@@ -74,8 +84,8 @@ namespace AugustaHIDCfg.MainApp
     {
         new Thread(() =>
         {
-        Thread.CurrentThread.IsBackground = true;
-        EnableFormButtons();
+            Thread.CurrentThread.IsBackground = true;
+            EnableFormButtons();
         }).Start();
     }
 
@@ -150,7 +160,7 @@ namespace AugustaHIDCfg.MainApp
             this.txtCardData.Text = "";
 
             // Disable Buttons
-            readMSRButton.Enabled = false;
+            readCardButton.Enabled = false;
 
             // Disable Tab(s)
             this.tabPage1.Enabled = false;
@@ -175,22 +185,22 @@ namespace AugustaHIDCfg.MainApp
 
     public static void EnableFormButtons()
     {
-        if (null == readMSRButton)
+        if (null == readCardButton)
         {
             return;
         }
 
         // Make this threadsafe:
-        if (readMSRButton.InvokeRequired)
+        if (readCardButton.InvokeRequired)
         {
-            readMSRButton.Invoke(new MethodInvoker(() =>
+            readCardButton.Invoke(new MethodInvoker(() =>
             {
                 EnableFormButtons();
             }));
         }
         else
         {
-            readMSRButton.Enabled = true;
+            readCardButton.Enabled = true;
         }
     }
 
@@ -224,7 +234,7 @@ namespace AugustaHIDCfg.MainApp
         }
 
         // Enable Buttons
-        readMSRButton.Enabled = true;
+        readCardButton.Enabled = true;
 
         // Enable Tab(s)
         this.tabPage1.Enabled = true;
@@ -292,38 +302,38 @@ namespace AugustaHIDCfg.MainApp
         // Wait for a new device to connect
         new Thread(() =>
         {
-        bool foundit = false;
-        Thread.CurrentThread.IsBackground = true;
+            bool foundit = false;
+            Thread.CurrentThread.IsBackground = true;
 
-        Debug.Write("Waiting for new device to connect");
+            Debug.Write("Waiting for new device to connect");
 
-        // Wait for a device to attach
-        while (!formClosing && !foundit)
-        {
-            HidDevice device = HidDevices.Enumerate(DeviceCfg.IDTechVendorID).FirstOrDefault();
-
-            if (device != null)
+            // Wait for a device to attach
+            while (!formClosing && !foundit)
             {
-            foundit = true;
-            device.CloseDevice();
-            }
-            else
-            {
-            Debug.Write(".");
-            Thread.Sleep(1000);
-            }
-        }
+                HidDevice device = HidDevices.Enumerate(DeviceCfg.IDTechVendorID).FirstOrDefault();
 
-        // Initialize Device
-        if (!formClosing && foundit)
-        {
-            Debug.WriteLine("found one!");
-
-            Thread.Sleep(3000);
+                if (device != null)
+                {
+                    foundit = true;
+                    device.CloseDevice();
+                }
+                else
+                {
+                    Debug.Write(".");
+                    Thread.Sleep(1000);
+                }
+            }
 
             // Initialize Device
-            InitalizeDeviceUI(this, new DeviceEventArgs());
-        }
+            if (!formClosing && foundit)
+            {
+                Debug.WriteLine("found one!");
+
+                Thread.Sleep(3000);
+
+                // Initialize Device
+                InitalizeDeviceUI(this, new DeviceEventArgs());
+            }
 
         }).Start();
     }
@@ -390,7 +400,7 @@ namespace AugustaHIDCfg.MainApp
         this.tabPage3.Enabled = false;
         this.tabPage4.Enabled = false;
 
-        readMSRButton.Enabled = false;
+        readCardButton.Enabled = false;
 
         // Clear field
         this.txtCardData.Text = "";
@@ -404,16 +414,6 @@ namespace AugustaHIDCfg.MainApp
         Thread.CurrentThread.IsBackground = true;
         devicePlugin.GetCardData();
         }).Start();
-    }
-
-    private void Form1_FormClosing(object sender, FormClosingEventArgs e)
-    {
-        formClosing = true;
-
-        if (devicePlugin != null)
-        {
-        devicePlugin.SetFormClosing(formClosing);
-        }
     }
 
     private void GetDeviceConfiguration(object payload)
