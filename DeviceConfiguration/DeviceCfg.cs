@@ -3371,6 +3371,10 @@ namespace AugustaHIDCfg.DeviceConfiguration
             {
                if(deviceInfo.deviceMode == IDTECH_DevicePID.AUGUSTA_USB)
                {
+                    // TURN ON QUICK CHIP MODE
+                    string command = "72 53 01 29 01 31";
+                    DeviceCommand(command);
+                    // Set Device to KB MODE
                     RETURN_CODE rt = IDT_Augusta.SharedController.msr_switchUSBInterfaceMode(true);
 
                     // code won't be reached: above function reboot device

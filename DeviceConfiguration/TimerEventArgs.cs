@@ -1,6 +1,6 @@
 ﻿namespace AugustaHIDCfg.DeviceConfiguration
 {
-  internal class TimerEventArgs
+  public class TimerEventArgs
   {
     public object Timer { get; set; }
   }

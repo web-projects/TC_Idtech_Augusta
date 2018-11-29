@@ -102,13 +102,16 @@ namespace AugustaHIDCfg.DeviceConfiguration
 
   public enum ConfigTypeEnum
   {
-    MsrTimeout = 100
+      MsrTimeout = 100,
+      TransactionTimeout = 200
   }
 
   public enum TimerType
    {
      [Description("MsrTimeout")]
-     MSR = ConfigTypeEnum.MsrTimeout
+     MSR = ConfigTypeEnum.MsrTimeout,
+     [Description("TransactionTimeout")]
+     TRANSACTION = ConfigTypeEnum.TransactionTimeout
   }
 
   public static class FeatureResponses

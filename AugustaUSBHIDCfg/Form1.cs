@@ -16,6 +16,8 @@ using AugustaHIDCfg.DeviceConfiguration;
 using AugustaHIDCfg.CommonInterface;
 using System.Collections;
 using System.IO;
+using System.Text.RegularExpressions;
+using System.Runtime.InteropServices;
 
 namespace AugustaHIDCfg.MainApp
 {
@@ -24,8 +26,12 @@ namespace AugustaHIDCfg.MainApp
     USB_HID_MODE = 0,
     USB_KYB_MODE = 1
   }
+
   public partial class Application : Form
   {
+    [DllImport("user32.dll")]
+    static extern bool HideCaret(IntPtr hWnd);
+
     public Panel appPnl;
 
     private bool formClosing = false;
@@ -41,8 +47,14 @@ namespace AugustaHIDCfg.MainApp
     private bool tc_show_configuration_tab;
     private bool tc_show_raw_mode_tab;
     private bool tc_show_json_tab;
+    private int  tc_read_transaction_timeout;
+    private int  tc_minimum_transaction_length;
 
     private DEV_USB_MODE dev_usb_mode;
+
+    private Stopwatch stopWatch;
+    internal static System.Timers.Timer TransactionTimer { get; set; }
+    private Color TEXTBOX_FORE_COLOR;
 
     public Application()
     {
@@ -81,6 +93,18 @@ namespace AugustaHIDCfg.MainApp
         {
             tabControl1.TabPages.Remove(tabPage5);
         }
+
+        // Transaction Timer
+        tc_read_transaction_timeout = 2000;
+        string read_transaction_timeout = System.Configuration.ConfigurationManager.AppSettings["tc_read_transaction_timeout"] ?? "2000";
+        int.TryParse(read_transaction_timeout, out tc_read_transaction_timeout);
+
+        tc_minimum_transaction_length = 1000;
+        string minimum_transaction_length = System.Configuration.ConfigurationManager.AppSettings["tc_minimum_transaction_length"] ?? "1000";
+        int.TryParse(minimum_transaction_length, out tc_minimum_transaction_length);
+
+        // Original Forecolor
+        TEXTBOX_FORE_COLOR = txtCardData.ForeColor;
 
         // Initialize Device
         InitalizeDevice();
@@ -261,6 +285,65 @@ namespace AugustaHIDCfg.MainApp
         this.tabPage4.Enabled = tc_show_raw_mode_tab;
         this.picBoxConfigWait.Visible  = false;
         this.picBoxJsonWait.Visible = false;
+
+
+        // KB Mode
+        if(dev_usb_mode == DEV_USB_MODE.USB_KYB_MODE)
+        {
+            this.txtCardData.ReadOnly = false;
+            this.txtCardData.GotFocus += CardDataTextBoxGotFocus;
+            this.txtCardData.ForeColor = this.txtCardData.BackColor;
+
+            stopWatch = new Stopwatch();
+            stopWatch.Start();
+
+            // Transaction Timer
+            SetTransactionTimer();
+
+            this.Invoke(new MethodInvoker(() =>
+            {
+                this.txtCardData.Focus();
+            }));
+        }
+        else
+        {
+            TransactionTimer?.Stop();
+            this.txtCardData.ForeColor = TEXTBOX_FORE_COLOR;
+            this.txtCardData.ReadOnly = true;
+            this.txtCardData.GotFocus -= CardDataTextBoxGotFocus;
+        }
+    }
+
+    private void SetTransactionTimer()
+    {
+        TransactionTimer = new System.Timers.Timer(tc_read_transaction_timeout);
+        TransactionTimer.AutoReset = false;
+        TransactionTimer.Elapsed += (sender, e) => RaiseTimerExpired(new TimerEventArgs { Timer = TimerType.TRANSACTION });
+        TransactionTimer.Start();
+    }
+
+    private void RaiseTimerExpired(TimerEventArgs e)
+    {
+        TransactionTimer?.Stop();
+
+        // Check for valid collection and completion of collection
+        if(this.txtCardData.Text.Length > tc_minimum_transaction_length && stopWatch.ElapsedMilliseconds > 1000)
+        {
+            this.Invoke(new MethodInvoker(() =>
+            {
+                string data = txtCardData.Text;
+                txtCardData.Text = "*** TRANSACTION SUCCESFULL ***";
+                this.txtCardData.ForeColor = TEXTBOX_FORE_COLOR;
+                Debug.WriteLine("main: card data=[{0}]", (object) data);
+            }));
+        }
+        else
+        {
+            SetTransactionTimer();
+        }
+
+        Debug.WriteLine("main: transaction timer raised ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        Debug.WriteLine("main: card data length=[0}", this.txtCardData.Text.Length);
     }
 
     private void InitalizeDevice(bool unload = false)
@@ -663,6 +746,9 @@ namespace AugustaHIDCfg.MainApp
                     if(!tabControl1.Contains(tabPage5) && tc_show_json_tab)
                     {
                         tabControl1.TabPages.Add(tabPage5);
+                        tabControl1.SelectedTab = this.tabPage5;
+                        this.tabPage5.Enabled = true;
+                        this.picBoxJsonWait.Visible = true;
                     }
                 }
             }
@@ -983,6 +1069,28 @@ namespace AugustaHIDCfg.MainApp
         }
     }
 
+    private void OnCardDataKeyEvent(object sender, KeyEventArgs e)
+    {
+        if(dev_usb_mode == DEV_USB_MODE.USB_KYB_MODE)
+        {
+            //Debug.WriteLine("main: key down event => key={0}", e.KeyData);
+            // Start a new collection
+            if(stopWatch.ElapsedMilliseconds > 5000)
+            {
+                this.txtCardData.Text = "";
+                this.txtCardData.ForeColor = this.txtCardData.BackColor;
+                SetTransactionTimer();
+                Debug.WriteLine("main: new scan detected ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+            }
+            stopWatch.Restart();
+        }
+    }
+
+    private void CardDataTextBoxGotFocus(object sender, EventArgs args)
+    {
+        HideCaret(this.txtCardData.Handle);
+    }
+
     #endregion
-  }
+    }
 }

@@ -81,11 +81,11 @@
             this.txtCommandResult = new System.Windows.Forms.TextBox();
             this.txtCommand = new System.Windows.Forms.TextBox();
             this.label15 = new System.Windows.Forms.Label();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.picBoxJsonWait = new System.Windows.Forms.PictureBox();
-            this.txtJson = new System.Windows.Forms.TextBox();
             this.btnCloseJson = new System.Windows.Forms.Button();
+            this.txtJson = new System.Windows.Forms.TextBox();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.panel1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -96,9 +96,9 @@
             this.panel3.SuspendLayout();
             this.tabPage4.SuspendLayout();
             this.panel4.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.tabPage5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picBoxJsonWait)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
             // label1
@@ -210,6 +210,8 @@
             this.txtCardData.ScrollBars = System.Windows.Forms.ScrollBars.Both;
             this.txtCardData.Size = new System.Drawing.Size(671, 231);
             this.txtCardData.TabIndex = 12;
+            this.txtCardData.UseSystemPasswordChar = true;
+            this.txtCardData.KeyDown += new System.Windows.Forms.KeyEventHandler(this.OnCardDataKeyEvent);
             // 
             // panel1
             // 
@@ -640,15 +642,6 @@
             this.label15.TabIndex = 0;
             this.label15.Text = "COMMAND:";
             // 
-            // pictureBox1
-            // 
-            this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
-            this.pictureBox1.Location = new System.Drawing.Point(12, 3);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(696, 46);
-            this.pictureBox1.TabIndex = 15;
-            this.pictureBox1.TabStop = false;
-            // 
             // tabPage5
             // 
             this.tabPage5.Controls.Add(this.picBoxJsonWait);
@@ -677,6 +670,16 @@
             this.picBoxJsonWait.Visible = false;
             this.picBoxJsonWait.WaitOnLoad = true;
             // 
+            // btnCloseJson
+            // 
+            this.btnCloseJson.Location = new System.Drawing.Point(305, 479);
+            this.btnCloseJson.Name = "btnCloseJson";
+            this.btnCloseJson.Size = new System.Drawing.Size(82, 25);
+            this.btnCloseJson.TabIndex = 0;
+            this.btnCloseJson.Text = "CLOSE";
+            this.btnCloseJson.UseVisualStyleBackColor = true;
+            this.btnCloseJson.Click += new System.EventHandler(this.btnCloseJson_Click);
+            // 
             // txtJson
             // 
             this.txtJson.Location = new System.Drawing.Point(7, 17);
@@ -687,15 +690,14 @@
             this.txtJson.Size = new System.Drawing.Size(682, 443);
             this.txtJson.TabIndex = 4;
             // 
-            // btnCloseJson
+            // pictureBox1
             // 
-            this.btnCloseJson.Location = new System.Drawing.Point(305, 479);
-            this.btnCloseJson.Name = "btnCloseJson";
-            this.btnCloseJson.Size = new System.Drawing.Size(82, 25);
-            this.btnCloseJson.TabIndex = 0;
-            this.btnCloseJson.Text = "CLOSE";
-            this.btnCloseJson.UseVisualStyleBackColor = true;
-            this.btnCloseJson.Click += new System.EventHandler(this.btnCloseJson_Click);
+            this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
+            this.pictureBox1.Location = new System.Drawing.Point(12, 3);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(696, 46);
+            this.pictureBox1.TabIndex = 15;
+            this.pictureBox1.TabStop = false;
             // 
             // Application
             // 
@@ -723,10 +725,10 @@
             this.tabPage4.ResumeLayout(false);
             this.panel4.ResumeLayout(false);
             this.panel4.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.tabPage5.ResumeLayout(false);
             this.tabPage5.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picBoxJsonWait)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
 
     }
