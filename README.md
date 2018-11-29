@@ -29,4 +29,5 @@ This an application to test IDTech Augusta Devices.
 * 20181126 - added terminal info TLV's.
 * 20181127 - moved AppDomain to its own function.
 * 20181128 - added tab to display JSON configuration.
-* 20181128 - added keyboard collection mode.
+* 20181129 - added keyboard collection mode.
+           - added initial error processing for fallback.

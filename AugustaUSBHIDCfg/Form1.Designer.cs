@@ -496,7 +496,6 @@
             this.txtPAN.Size = new System.Drawing.Size(24, 20);
             this.txtPAN.TabIndex = 9;
             this.txtPAN.Text = "0";
-            this.txtPAN.TextChanged += new System.EventHandler(this.txtPAN_TextChanged);
             // 
             // cBxExpirationMask
             // 

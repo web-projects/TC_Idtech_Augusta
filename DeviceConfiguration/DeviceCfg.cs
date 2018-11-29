@@ -3427,6 +3427,33 @@ namespace AugustaHIDCfg.DeviceConfiguration
 
         }
     }
+
+    public string GetErrorMessage(string data)
+    {
+        string message = data;
+
+        if(data.Contains("DFEF61"))
+        {
+            if(data.Contains("F220"))
+            {
+                message = "*** TRANSACTION ERROR *** : Insert ICC again / Swipe";
+            }
+            else if(data.Contains("F221"))
+            {
+                message = "*** TRANSACTION ERROR *** : Prompt Fallback";
+            }
+            if(data.Contains("F222"))
+            {
+                message = "*** TRANSACTION ERROR *** : SWIPE CARD - NO EMV";
+            }
+        }
+        else if(data.StartsWith("9F39"))
+        {
+            message = "*** TRANSACTION DATA PROCESSED : MSR ***";
+        }
+
+        return message;
+    }
     #endregion
   }
 }

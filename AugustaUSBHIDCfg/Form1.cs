@@ -32,6 +32,11 @@ namespace AugustaHIDCfg.MainApp
     [DllImport("user32.dll")]
     static extern bool HideCaret(IntPtr hWnd);
 
+    /********************************************************************************************************/
+    // ATTRIBUTES SECTION
+    /********************************************************************************************************/
+    #region -- attributes section --
+
     public Panel appPnl;
 
     private bool formClosing = false;
@@ -47,7 +52,8 @@ namespace AugustaHIDCfg.MainApp
     private bool tc_show_configuration_tab;
     private bool tc_show_raw_mode_tab;
     private bool tc_show_json_tab;
-    private int  tc_read_transaction_timeout;
+    private int  tc_transaction_timeout;
+    private int  tc_transaction_collection_timeout;
     private int  tc_minimum_transaction_length;
 
     private DEV_USB_MODE dev_usb_mode;
@@ -55,6 +61,7 @@ namespace AugustaHIDCfg.MainApp
     private Stopwatch stopWatch;
     internal static System.Timers.Timer TransactionTimer { get; set; }
     private Color TEXTBOX_FORE_COLOR;
+    #endregion
 
     public Application()
     {
@@ -95,10 +102,16 @@ namespace AugustaHIDCfg.MainApp
         }
 
         // Transaction Timer
-        tc_read_transaction_timeout = 2000;
-        string read_transaction_timeout = System.Configuration.ConfigurationManager.AppSettings["tc_read_transaction_timeout"] ?? "2000";
-        int.TryParse(read_transaction_timeout, out tc_read_transaction_timeout);
+        tc_transaction_timeout = 2000;
+        string transaction_timeout = System.Configuration.ConfigurationManager.AppSettings["tc_transaction_timeout"] ?? "2000";
+        int.TryParse(transaction_timeout, out tc_transaction_timeout);
 
+        // Transaction Collection Timer
+        tc_transaction_collection_timeout = 5000;
+        string transaction_collection_timeout = System.Configuration.ConfigurationManager.AppSettings["tc_transaction_collection_timeout"] ?? "5000";
+        int.TryParse(transaction_collection_timeout, out tc_transaction_collection_timeout);
+
+        // Transaction Minimum Length
         tc_minimum_transaction_length = 1000;
         string minimum_transaction_length = System.Configuration.ConfigurationManager.AppSettings["tc_minimum_transaction_length"] ?? "1000";
         int.TryParse(minimum_transaction_length, out tc_minimum_transaction_length);
@@ -111,14 +124,9 @@ namespace AugustaHIDCfg.MainApp
     }
 
     /********************************************************************************************************/
-    // FORMS ELEMENTS
+    // FORM ELEMENTS
     /********************************************************************************************************/
-    #region -- forms elements --
-
-    private void txtPAN_TextChanged(object sender, EventArgs e)
-    {
-        // Validate INPUT
-    }
+    #region -- form elements --
 
     private void Form1_FormClosing(object sender, FormClosingEventArgs e)
     {
@@ -255,7 +263,7 @@ namespace AugustaHIDCfg.MainApp
 
     private void SetConfiguration()
     {
-        Debug.WriteLine("\nmain: update GUI elements =========================================================");
+        Debug.WriteLine("main: update GUI elements =========================================================");
 
         this.lblSerialNumber.Text = "";
         this.lblFirmwareVersion.Text = "";
@@ -316,7 +324,7 @@ namespace AugustaHIDCfg.MainApp
 
     private void SetTransactionTimer()
     {
-        TransactionTimer = new System.Timers.Timer(tc_read_transaction_timeout);
+        TransactionTimer = new System.Timers.Timer(tc_transaction_timeout);
         TransactionTimer.AutoReset = false;
         TransactionTimer.Elapsed += (sender, e) => RaiseTimerExpired(new TimerEventArgs { Timer = TimerType.TRANSACTION });
         TransactionTimer.Start();
@@ -327,15 +335,30 @@ namespace AugustaHIDCfg.MainApp
         TransactionTimer?.Stop();
 
         // Check for valid collection and completion of collection
-        if(this.txtCardData.Text.Length > tc_minimum_transaction_length && stopWatch.ElapsedMilliseconds > 1000)
+        if(stopWatch.ElapsedMilliseconds > tc_transaction_collection_timeout)
         {
-            this.Invoke(new MethodInvoker(() =>
+            if(this.txtCardData.Text.Length > tc_minimum_transaction_length)
             {
-                string data = txtCardData.Text;
-                txtCardData.Text = "*** TRANSACTION SUCCESFULL ***";
-                this.txtCardData.ForeColor = TEXTBOX_FORE_COLOR;
-                Debug.WriteLine("main: card data=[{0}]", (object) data);
-            }));
+                this.Invoke(new MethodInvoker(() =>
+                {
+                    string data = txtCardData.Text;
+                    txtCardData.Text = "*** TRANSACTION DATA PROCESSED : EMV ***";
+                    this.txtCardData.ForeColor = TEXTBOX_FORE_COLOR;
+                    Debug.WriteLine("main: card data=[{0}]", (object) data);
+                }));
+            }
+            else
+            {
+                // This could be an MSR fallback transaction
+                this.Invoke(new MethodInvoker(() =>
+                {
+                    string data = txtCardData.Text;
+                    string message = devicePlugin.GetErrorMessage(data);
+                    txtCardData.Text = message;
+                    this.txtCardData.ForeColor = TEXTBOX_FORE_COLOR;
+                    Debug.WriteLine("main: card data=[{0}]", (object) data);
+                }));
+            }
         }
         else
         {
@@ -368,16 +391,16 @@ namespace AugustaHIDCfg.MainApp
         // Initialize interface
         if (devicePlugin != null)
         {
+            // Disable Tab(s)
+            this.tabPage1.Enabled = false;
+            this.tabPage2.Enabled = false;
+            this.tabPage3.Enabled = false;
+            this.tabPage4.Enabled = false;
+
             new Thread(() =>
             {
                 Thread.CurrentThread.IsBackground = true;
                 Debug.WriteLine("\nmain: new device detected! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-
-                // Disable Tab(s)
-                this.tabPage1.Enabled = false;
-                this.tabPage2.Enabled = false;
-                this.tabPage3.Enabled = false;
-                this.tabPage4.Enabled = false;
 
                 // Setup DeviceCfg Event Handlers
                 devicePlugin.initializeDevice += new DeviceEventHandler(this.InitalizeDeviceUI);
@@ -388,10 +411,10 @@ namespace AugustaHIDCfg.MainApp
                 devicePlugin.setDeviceConfiguration += new DeviceEventHandler(this.SetDeviceConfigurationUI);
                 devicePlugin.setDeviceMode += new DeviceEventHandler(this.SetDeviceModeUI);
                 devicePlugin.setExecuteResult += new DeviceEventHandler(this.SetExecuteResultUI);
+                devicePlugin.showJsonConfig += new DeviceEventHandler(this.ShowJsonConfigUI);
 
                 if(tc_show_json_tab && dev_usb_mode == DEV_USB_MODE.USB_HID_MODE)
                 {
-                    devicePlugin.showJsonConfig += new DeviceEventHandler(this.ShowJsonConfigUI);
                     this.Invoke(new MethodInvoker(() =>
                     {
                         this.picBoxJsonWait.Visible = true;
@@ -1024,6 +1047,7 @@ namespace AugustaHIDCfg.MainApp
     private void btnMode_Click(object sender, EventArgs e)
     {
         string mode = this.btnMode.Text;
+        TransactionTimer?.Stop();
 
         new Thread(() =>
         {
@@ -1075,7 +1099,7 @@ namespace AugustaHIDCfg.MainApp
         {
             //Debug.WriteLine("main: key down event => key={0}", e.KeyData);
             // Start a new collection
-            if(stopWatch.ElapsedMilliseconds > 5000)
+            if(stopWatch.ElapsedMilliseconds > tc_transaction_collection_timeout)
             {
                 this.txtCardData.Text = "";
                 this.txtCardData.ForeColor = this.txtCardData.BackColor;

@@ -51,5 +51,7 @@ namespace AugustaHIDCfg.CommonInterface
     void SetDeviceConfiguration(object data);
     void SetDeviceMode(string mode);
     void DeviceCommand(string command);
+    // Messaging
+    string GetErrorMessage(string data);
   }
 }
