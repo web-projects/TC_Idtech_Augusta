@@ -61,7 +61,6 @@ namespace AugustaHIDCfg.DeviceConfiguration
     // Device Events back to Main Form
     public event DeviceEventHandler initializeDevice;
     public event DeviceEventHandler unloadDeviceconfigDomain;
-    public event DeviceEventHandler enableFormButtons;
     public event DeviceEventHandler processCardData;
     public event DeviceEventHandler processCardDataError;
     public event DeviceEventHandler getDeviceConfiguration;
@@ -143,7 +142,8 @@ namespace AugustaHIDCfg.DeviceConfiguration
 			Debug.WriteLine("  Number of Feature Value Caps   : " + device.Capabilities.NumberFeatureValueCaps);
 			Debug.WriteLine("  Number of Feature Data Indices : " + device.Capabilities.NumberFeatureDataIndices);
 
-            if (!useUniversalSDK)
+            //if (!useUniversalSDK)
+            if(deviceInfo.deviceMode != IDTECH_DevicePID.AUGUSTA_USB)
             {
               bool? isHid = null;
 
@@ -182,10 +182,8 @@ namespace AugustaHIDCfg.DeviceConfiguration
             //if (!useUniversalSDK)
             if(deviceInfo.deviceMode != IDTECH_DevicePID.AUGUSTA_USB)
             {
-              //deviceInfo.SecurityLevel = SecurityLevelNumber.NotChecked;
-
-              // Get Device Information
-              PopulateDeviceInfo();
+                // Get Device Information
+                PopulateDeviceInfo();
             }
             else
             {
@@ -253,14 +251,6 @@ namespace AugustaHIDCfg.DeviceConfiguration
         if (unloadDeviceconfigDomain != null)
         {
           unloadDeviceconfigDomain(this, e);
-        }
-    }
-
-    protected virtual void OnEnableFormButtons(DeviceEventArgs e) 
-    {
-        if (enableFormButtons != null)
-        {
-          enableFormButtons(this, e);
         }
     }
 
@@ -975,6 +965,7 @@ namespace AugustaHIDCfg.DeviceConfiguration
 
     private bool PopulateDeviceInfo()
     {
+        bool result = false;
         var status = GetCurrentConfig();
 
         //if it was a successful retrieval, get the security level and Serial Number
@@ -1000,9 +991,13 @@ namespace AugustaHIDCfg.DeviceConfiguration
                             while (endIndex <= 12)
                             {
                                 if (deviceInfo.ConfigValues[index + endIndex] == (byte)Token.ETK || deviceInfo.ConfigValues[index + endIndex] == (byte)FuncID.DeviceFormat)
+                                {
                                     break;
+                                }
                                 else
+                                {
                                     endIndex++;
+                                }
                             }
 
                             deviceInfo.SerialNumber = new ASCIIEncoding().GetString(deviceInfo.ConfigValues, index + 3, endIndex - 3);
@@ -1031,15 +1026,11 @@ namespace AugustaHIDCfg.DeviceConfiguration
                 //Get the device model #
                 deviceInfo.ModelNumber = GetModelNumber(deviceInfo.ModelName, deviceInfo.ConfigValues, double.Parse(deviceInfo.FirmwareVersion));
 
-                return true;
+                result = true;
             }
+        }
 
-            return false;
-        }
-        else
-        {
-           return false;
-        }
+        return result;
     }
 
     private EntryModeStatus SetDeviceHidMode()
@@ -1128,9 +1119,6 @@ namespace AugustaHIDCfg.DeviceConfiguration
                   Debug.WriteLine("device INFO[Model Number]: " + deviceInfo.ModelNumber);
               }
           }
-
-          // Enable Form Buttons
-          //OnEnableFormButtons(new DeviceEventArgs());
       }
     }
 
@@ -1224,7 +1212,7 @@ namespace AugustaHIDCfg.DeviceConfiguration
               {
                   if (cardData.msr_rawData.Length == 1 && cardData.msr_rawData[0] == 0x18)
                   {
-                       Debug.WriteLine("Get MSR Complete! \n");
+                      Debug.WriteLine("Get MSR Complete! \n");
                       Debug.WriteLine("Get MSR Complete! \n");
                   }
               }
@@ -1238,9 +1226,9 @@ namespace AugustaHIDCfg.DeviceConfiguration
               cardData.Event != EVENT_TRANSACTION_DATA_Types.EVENT_TRANSACTION_DATA_CARD_DATA && 
               cardData.Event != EVENT_TRANSACTION_DATA_Types.EVENT_TRANSACTION_DATA_EMV_DATA)
           {
-            //SoftwareController.MSR_LED_RED_SOLID();
-            Debug.WriteLine("MSR Error " + cardData.msr_errorCode.ToString() + "\n");
-            Debug.WriteLine("MSR Error " + cardData.msr_errorCode.ToString());
+             //SoftwareController.MSR_LED_RED_SOLID();
+             Debug.WriteLine("MSR Error " + cardData.msr_errorCode.ToString() + "\n");
+             Debug.WriteLine("MSR Error " + cardData.msr_errorCode.ToString());
           }
           else
           {
@@ -1525,6 +1513,9 @@ namespace AugustaHIDCfg.DeviceConfiguration
 
     private void ProcessCardData(IDTTransactionData cardData)
     {
+        // Stop Timer
+        MSRTimer?.Stop();
+
         string text = "";
 
         if (cardData.Event == EVENT_TRANSACTION_DATA_Types.EVENT_TRANSACTION_PIN_DATA)
@@ -2017,7 +2008,6 @@ namespace AugustaHIDCfg.DeviceConfiguration
         OnProcessCardData(args);
 
         byte[] temp = new byte[0];
-        
         ClearCallbackData(ref temp, ref cardData);
 
         //if (cardData.emv_resultCode == EMV_RESULT_CODE.EMV_RESULT_CODE_GO_ONLINE && cbAutoComplete.Checked)
@@ -2219,7 +2209,7 @@ namespace AugustaHIDCfg.DeviceConfiguration
         }
 
         // Encryption Control
-        string enable_read_encryption =  _configWrapper.GetAppSetting("tc_read_encryption") ?? "true";
+        string enable_read_encryption =  _configWrapper.GetAppSetting("tc_read_encryption") ?? "false";
         //string enable_read_encryption = System.Configuration.ConfigurationManager.AppSettings["tc_read_encryption"] ?? "true";
         bool read_encryption;
         bool.TryParse(enable_read_encryption, out read_encryption);
@@ -2229,7 +2219,7 @@ namespace AugustaHIDCfg.DeviceConfiguration
         }
 
         // Device Configuration: contact:capk
-        string enable_read_capk_settings =  _configWrapper.GetAppSetting("tc_read_capk_settings") ?? "true";
+        string enable_read_capk_settings =  _configWrapper.GetAppSetting("tc_read_capk_settings") ?? "false";
         //string enable_read_capk_settings = System.Configuration.ConfigurationManager.AppSettings["tc_read_capk_settings"] ?? "true";
         bool read_capk_settings;
         bool.TryParse(enable_read_capk_settings, out read_capk_settings);
@@ -2239,7 +2229,7 @@ namespace AugustaHIDCfg.DeviceConfiguration
         }
 
         // Device Configuration: contact:aid
-        string enable_read_aid_settings =  _configWrapper.GetAppSetting("tc_read_aid_settings") ?? "true";
+        string enable_read_aid_settings =  _configWrapper.GetAppSetting("tc_read_aid_settings") ?? "false";
         //string enable_read_aid_settings = System.Configuration.ConfigurationManager.AppSettings["tc_read_aid_settings"] ?? "true";
         bool read_aid_settings;
         bool.TryParse(enable_read_aid_settings, out read_aid_settings);
@@ -2249,7 +2239,7 @@ namespace AugustaHIDCfg.DeviceConfiguration
         }
 
         // MSR Settings
-        string enable_read_msr_settings =  _configWrapper.GetAppSetting("tc_read_msr_settings") ?? "true";
+        string enable_read_msr_settings =  _configWrapper.GetAppSetting("tc_read_msr_settings") ?? "false";
         //string enable_read_msr_settings = System.Configuration.ConfigurationManager.AppSettings["tc_read_msr_settings"] ?? "true";
         bool read_msr_settings;
         bool.TryParse(enable_read_msr_settings, out read_msr_settings);
@@ -2687,14 +2677,24 @@ namespace AugustaHIDCfg.DeviceConfiguration
         DeviceEventArgs args = new DeviceEventArgs();
         args.payload[0] = "***** REQUEST FAILED: DEVICE IS NOT CONNECTED *****";
         OnProcessCardDataError(args);
-
         return;
       }
 
-      if(useUniversalSDK)
-      {
-         RETURN_CODE rt = IDT_Augusta.SharedController.msr_startMSRSwipe(60);
+      int tc_read_msr_timeout = 20000;
+      string read_msr_timeout = System.Configuration.ConfigurationManager.AppSettings["tc_read_msr_timeout"] ?? "20000";
+      int.TryParse(read_msr_timeout, out tc_read_msr_timeout);
+      int msrTimerInterval = tc_read_msr_timeout;
 
+      // Set Read Timeout
+      MSRTimer = new System.Timers.Timer(msrTimerInterval);
+      MSRTimer.AutoReset = false;
+      MSRTimer.Elapsed += (sender, e) => RaiseTimerExpired(new TimerEventArgs { Timer = TimerType.MSR });
+      MSRTimer.Start();
+      
+      //if(useUniversalSDK)
+      if(deviceInfo.deviceMode == IDTECH_DevicePID.AUGUSTA_USB)
+      {
+          RETURN_CODE rt = IDT_Augusta.SharedController.msr_startMSRSwipe(60);
           if (rt == RETURN_CODE.RETURN_CODE_DO_SUCCESS)
           {
               Debug.WriteLine("DeviceCfg: MSR Turned On successfully; Ready to swipe");
@@ -2704,13 +2704,6 @@ namespace AugustaHIDCfg.DeviceConfiguration
       {
         // Initialize MSR
         Init();
-
-        int msrTimerInterval = 10000;
-
-        MSRTimer = new System.Timers.Timer(msrTimerInterval);
-        MSRTimer.AutoReset = false;
-        MSRTimer.Elapsed += (sender, e) => RaiseTimerExpired(new TimerEventArgs { Timer = TimerType.MSR });
-        MSRTimer.Start();
 
         cardReader.done.Dispose();
         cardReader.done = new EventWaitHandle(false, EventResetMode.AutoReset);
@@ -3224,6 +3217,15 @@ namespace AugustaHIDCfg.DeviceConfiguration
     {
       //MSRTimer?.Invoke(null, e);
       MSRTimer?.Stop();
+
+      if(useUniversalSDK)
+      {
+          RETURN_CODE rt = IDT_Augusta.SharedController.msr_cancelMSRSwipe();
+          if (rt == RETURN_CODE.RETURN_CODE_DO_SUCCESS)
+          {
+              Debug.WriteLine("DeviceCfg: MSR Turned Off successfully.");
+          }
+      }
 
       // Allow for GUI Recovery
       DeviceEventArgs args = new DeviceEventArgs();

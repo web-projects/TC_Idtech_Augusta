@@ -582,7 +582,7 @@
       "firmware_ver": "ID TECH Augusta USB-HID V1.02",
       "contact_emv_kernel_ver": "EMV Common L2 V1.10.037",
       "contact_emv_kernel_checksum": "8d9395c588f2dec9ae9dc8bb7b9841a3525711c6",
-      "contact_emv_kernel_configuration_checksum": "dad6aed81e9375043a1dbef84c193fe863b2ed7f"
+      "contact_emv_kernel_configuration_checksum": "b430ceb9fe858b00b8b27d6f56ef40d42f0eaf8a"
     },
     "Encryption": {
       "data_encryption_type": "TDES",
@@ -604,6 +604,6 @@
       "track2": false,
       "track3": true
     },
-    "last_update_timestamp": "2018-11-28T20:00:35.7070445Z"
+    "last_update_timestamp": "2018-11-29T00:55:24.6944043Z"
   }
 }

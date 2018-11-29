@@ -19,14 +19,16 @@ using System.IO;
 
 namespace AugustaHIDCfg.MainApp
 {
+  public enum DEV_USB_MODE
+  {
+    USB_HID_MODE = 0,
+    USB_KYB_MODE = 1
+  }
   public partial class Application : Form
   {
     public Panel appPnl;
 
     private bool formClosing = false;
-
-    public static Button readCardButton;
-    public static Button getConfigButton;
 
     // AppDomain Artifacts
     private AppDomainCfg appDomainCfg;
@@ -40,16 +42,13 @@ namespace AugustaHIDCfg.MainApp
     private bool tc_show_raw_mode_tab;
     private bool tc_show_json_tab;
 
+    private DEV_USB_MODE dev_usb_mode;
+
     public Application()
     {
         InitializeComponent();
 
         this.Text = "IDTECH Device Discovery Application";
-
-        readCardButton = this.btnCardRead;
-
-        // Disable User Button(s)
-        readCardButton.Enabled = false;
 
         // Settings Tab
         string show_settings_tab = System.Configuration.ConfigurationManager.AppSettings["tc_show_settings_tab"] ?? "false";
@@ -124,15 +123,6 @@ namespace AugustaHIDCfg.MainApp
     private void InitalizeDeviceUI(object sender, DeviceEventArgs e)
     {
         InitalizeDevice(true);
-    }
-
-    private void EnableFormButtonsUI(object sender, DeviceEventArgs e)
-    {
-        new Thread(() =>
-        {
-            Thread.CurrentThread.IsBackground = true;
-            EnableFormButtons();
-        }).Start();
     }
 
     private void ProcessCardDataUI(object sender, DeviceEventArgs e)
@@ -210,9 +200,6 @@ namespace AugustaHIDCfg.MainApp
             this.lblPort.Text = "";
             this.txtCardData.Text = "";
 
-            // Disable Buttons
-            readCardButton.Enabled = false;
-
             // Disable Tab(s)
             this.tabPage1.Enabled = false;
             this.tabPage2.Enabled = false;
@@ -232,27 +219,6 @@ namespace AugustaHIDCfg.MainApp
         else
         {
             SetConfiguration();
-        }
-    }
-
-    public static void EnableFormButtons()
-    {
-        if (null == readCardButton)
-        {
-            return;
-        }
-
-        // Make this threadsafe:
-        if (readCardButton.InvokeRequired)
-        {
-            readCardButton.Invoke(new MethodInvoker(() =>
-            {
-                EnableFormButtons();
-            }));
-        }
-        else
-        {
-            readCardButton.Enabled = true;
         }
     }
 
@@ -286,14 +252,15 @@ namespace AugustaHIDCfg.MainApp
         }
 
         // Enable Buttons
-        readCardButton.Enabled = true;
+        this.btnCardRead.Enabled = (dev_usb_mode == DEV_USB_MODE.USB_HID_MODE) ? true : false;
 
         // Enable Tab(s)
         this.tabPage1.Enabled = true;
-        this.tabPage2.Enabled = true;
-        this.tabPage3.Enabled = true;
-        this.tabPage4.Enabled = true;
+        this.tabPage2.Enabled = tc_show_settings_tab;
+        this.tabPage3.Enabled = tc_show_configuration_tab;
+        this.tabPage4.Enabled = tc_show_raw_mode_tab;
         this.picBoxConfigWait.Visible  = false;
+        this.picBoxJsonWait.Visible = false;
     }
 
     private void InitalizeDevice(bool unload = false)
@@ -331,7 +298,6 @@ namespace AugustaHIDCfg.MainApp
 
                 // Setup DeviceCfg Event Handlers
                 devicePlugin.initializeDevice += new DeviceEventHandler(this.InitalizeDeviceUI);
-                devicePlugin.enableFormButtons += new DeviceEventHandler(this.EnableFormButtonsUI);
                 devicePlugin.unloadDeviceconfigDomain += new DeviceEventHandler(this.UnloadDeviceConfigurationDomain);
                 devicePlugin.processCardData += new DeviceEventHandler(this.ProcessCardDataUI);
                 devicePlugin.processCardDataError += new DeviceEventHandler(this.ProcessCardDataErrorUI);
@@ -340,12 +306,12 @@ namespace AugustaHIDCfg.MainApp
                 devicePlugin.setDeviceMode += new DeviceEventHandler(this.SetDeviceModeUI);
                 devicePlugin.setExecuteResult += new DeviceEventHandler(this.SetExecuteResultUI);
 
-                if(tc_show_json_tab)
+                if(tc_show_json_tab && dev_usb_mode == DEV_USB_MODE.USB_HID_MODE)
                 {
                     devicePlugin.showJsonConfig += new DeviceEventHandler(this.ShowJsonConfigUI);
-                    this.picBoxJsonWait.Visible = true;
                     this.Invoke(new MethodInvoker(() =>
                     {
+                        this.picBoxJsonWait.Visible = true;
                         tabControl1.SelectedTab = this.tabPage5;
                     }));
                 }
@@ -411,7 +377,7 @@ namespace AugustaHIDCfg.MainApp
                 //string [] data = ((IEnumerable) payload).Cast<object>().Select(x => x == null ? "" : x.ToString()).ToArray();
                 //this.txtCardData.Text = string.Join("", data[0].ToString());
                 this.txtCardData.Text = payload.ToString();
-                this.btnCardRead.Enabled = true;
+                this.btnCardRead.Enabled = (dev_usb_mode == DEV_USB_MODE.USB_HID_MODE) ? true : false;
 
                 // Enable Tab(s)
                 this.tabPage1.Enabled = true;
@@ -442,7 +408,7 @@ namespace AugustaHIDCfg.MainApp
         {
             //string [] data = ((IEnumerable) payload).Cast<object>().Select(x => x == null ? "" : x.ToString()).ToArray();
             this.txtCardData.Text = payload.ToString();
-            this.btnCardRead.Enabled = true;
+            this.btnCardRead.Enabled = (dev_usb_mode == DEV_USB_MODE.USB_HID_MODE) ? true : false;
 
             // Enable Tab(s)
             this.tabPage1.Enabled = true;
@@ -470,7 +436,7 @@ namespace AugustaHIDCfg.MainApp
         this.tabPage4.Enabled = false;
         this.tabPage5.Enabled = false;
 
-        readCardButton.Enabled = false;
+        this.btnCardRead.Enabled = false;
 
         // Clear field
         this.txtCardData.Text = "";
@@ -505,9 +471,9 @@ namespace AugustaHIDCfg.MainApp
 
             // Enable Tabs
             this.tabPage1.Enabled = true;
-            this.tabPage2.Enabled = true;
-            this.tabPage3.Enabled = true;
-            this.tabPage4.Enabled = true;
+            this.tabPage2.Enabled = tc_show_settings_tab;
+            this.tabPage3.Enabled = tc_show_configuration_tab;
+            this.tabPage4.Enabled = tc_show_raw_mode_tab;
             this.picBoxConfigWait.Visible = false;
             this.picBoxJsonWait.Visible = false;
         }
@@ -648,6 +614,17 @@ namespace AugustaHIDCfg.MainApp
 
                 if(data[0].Contains("HID"))
                 {
+                    dev_usb_mode = DEV_USB_MODE.USB_KYB_MODE;
+
+                    // Startup Transition to HID mode
+                    if(this.picBoxJsonWait.Visible == true)
+                    {
+                        this.picBoxJsonWait.Visible = false;
+                        tabControl1.SelectedTab = this.tabPage1;
+                    }
+
+                    this.btnCardRead.Enabled = false;
+
                     if(tabControl1.Contains(tabPage2))
                     {
                         tabControl1.TabPages.Remove(tabPage2);
@@ -667,6 +644,10 @@ namespace AugustaHIDCfg.MainApp
                 }
                 else
                 {
+                    dev_usb_mode = DEV_USB_MODE.USB_HID_MODE;
+
+                    this.btnCardRead.Enabled = true;
+
                     if(!tabControl1.Contains(tabPage2) && tc_show_settings_tab)
                     {
                         tabControl1.TabPages.Add(tabPage2);
@@ -730,32 +711,40 @@ namespace AugustaHIDCfg.MainApp
 
     private void ShowJsonConfig(object payload)
     {
-        // Invoker with Parameter(s)
-        MethodInvoker mi = () =>
+        if(dev_usb_mode == DEV_USB_MODE.USB_HID_MODE)
         {
-            try
+            // Invoker with Parameter(s)
+            MethodInvoker mi = () =>
             {
-                if(tc_show_json_tab)
+                try
                 {
-                    string [] filename = ((IEnumerable) payload).Cast<object>().Select(x => x == null ? "" : x.ToString()).ToArray();
-                    this.txtJson.Text = File.ReadAllText(filename[0]);
-                    tabControl1.SelectedTab = this.tabPage5;
-                    this.picBoxJsonWait.Visible = false;
+                    if(tc_show_json_tab)
+                    {
+                        string [] filename = ((IEnumerable) payload).Cast<object>().Select(x => x == null ? "" : x.ToString()).ToArray();
+                        this.txtJson.Text = File.ReadAllText(filename[0]);
+                        tabControl1.SelectedTab = this.tabPage5;
+                        this.picBoxJsonWait.Visible = false;
+                    }
                 }
-            }
-            catch (Exception exp)
-            {
-                Debug.WriteLine("main: ShowJsonConfig() - exception={0}", (object)exp.Message);
-            }
-        };
+                catch (Exception exp)
+                {
+                    Debug.WriteLine("main: ShowJsonConfig() - exception={0}", (object) exp.Message);
+                }
+            };
 
-        if (InvokeRequired)
-        {
-            BeginInvoke(mi);
+            if (InvokeRequired)
+            {
+                BeginInvoke(mi);
+            }
+            else
+            {
+                Invoke(mi);
+            }
         }
-        else
+        else if(this.picBoxJsonWait.Visible == true)
         {
-            Invoke(mi);
+            this.picBoxJsonWait.Visible = false;
+            tabControl1.SelectedTab = this.tabPage1;
         }
     }
 

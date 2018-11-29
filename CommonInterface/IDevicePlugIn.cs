@@ -27,7 +27,6 @@ namespace AugustaHIDCfg.CommonInterface
     // Device Events back to Main Form
     event DeviceEventHandler initializeDevice;
     event DeviceEventHandler unloadDeviceconfigDomain;
-    event DeviceEventHandler enableFormButtons;
     event DeviceEventHandler processCardData;
     event DeviceEventHandler processCardDataError;
     event DeviceEventHandler getDeviceConfiguration;

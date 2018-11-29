@@ -31,6 +31,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>TC-IPA-Shield.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Augusta_config">
       <HintPath>..\sdk\Augusta_config.dll</HintPath>
@@ -149,6 +152,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\logo-bottom.png" />
+    <Content Include="Assets\TC-IPA-Shield.ico" />
+    <Content Include="Assets\TC-logo.png" />
+    <Content Include="Assets\TC-WAIT.gif" />
+    <Content Include="TC-IPA-Shield.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
