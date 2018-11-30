@@ -67,6 +67,13 @@ namespace AugustaHIDCfg.CommonInterface
             return text;
         }
 
+        public string GetTagValue(string key)
+        {
+            object value = "";
+            tags.TryGetValue(key, out value);
+            return (string) value;
+        }
+
         public Dictionary<string, object> GetTags()
         {
             return tags;

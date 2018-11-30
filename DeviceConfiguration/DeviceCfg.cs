@@ -92,6 +92,11 @@ namespace AugustaHIDCfg.DeviceConfiguration
     // App.config Interface/Wrapper
     private IConfigurationWrapper _configWrapper;
 
+    // EMV Transactions
+    int exponent;
+    byte[] additionalTags;
+    string amount;
+
     #endregion
 
     /********************************************************************************************************/
@@ -1020,7 +1025,7 @@ namespace AugustaHIDCfg.DeviceConfiguration
             if (firmwareModelInfo != null)
             {
                 deviceInfo.FirmwareVersion = ParseFirmwareVersion(firmwareModelInfo);
-                deviceInfo.ModelName = firmwareModelInfo.Substring(0, firmwareModelInfo.IndexOf("USB", StringComparison.Ordinal) - 2);
+                deviceInfo.ModelName = firmwareModelInfo.Substring(0, firmwareModelInfo.IndexOf("USB", StringComparison.Ordinal) - 1);
                 deviceInfo.Port = firmwareModelInfo.Substring(firmwareModelInfo.IndexOf("USB", StringComparison.Ordinal), 7);
 
                 //Get the device model #
@@ -2326,6 +2331,17 @@ namespace AugustaHIDCfg.DeviceConfiguration
                 string text = td.ConvertTLVToValuePairs();
                 serializer.general_configuration.Contact.terminal_data = td.ConvertTLVToString();
                 serializer.general_configuration.Contact.tags = td.GetTags();
+                // Information From Terminal Data
+                string language = td.GetTagValue("DF10");
+                language = (language.Length > 1) ? language.Substring(0, 2) : "";
+                string merchantName = td.GetTagValue("9F4E");
+                merchantName = CardReader.ConvertHexStringToAscii(merchantName);
+                string merchantID = td.GetTagValue("9F16");
+                merchantID = CardReader.ConvertHexStringToAscii(merchantID);
+                string terminalID = td.GetTagValue("9F1C");
+                terminalID = CardReader.ConvertHexStringToAscii(terminalID);
+                string exp = td.GetTagValue("5F36");
+                exponent = Int32.Parse(td.GetTagValue("5F36"));
             }
         }
         catch(Exception exp)
@@ -2694,10 +2710,17 @@ namespace AugustaHIDCfg.DeviceConfiguration
       //if(useUniversalSDK)
       if(deviceInfo.deviceMode == IDTECH_DevicePID.AUGUSTA_USB)
       {
-          RETURN_CODE rt = IDT_Augusta.SharedController.msr_startMSRSwipe(60);
+          //RETURN_CODE rt = IDT_Augusta.SharedController.msr_startMSRSwipe(60);
+          amount = "1.00";
+          additionalTags = null;
+          RETURN_CODE rt = IDT_Augusta.SharedController.emv_startTransaction(Convert.ToDouble(amount), 0, exponent, 0,30, additionalTags, false);
           if (rt == RETURN_CODE.RETURN_CODE_DO_SUCCESS)
           {
-              Debug.WriteLine("DeviceCfg: MSR Turned On successfully; Ready to swipe");
+              Debug.WriteLine("DeviceCfg::GetCardData(): MSR Turned On successfully; Ready to swipe");
+          }
+          else
+          {
+              Debug.WriteLine("DeviceCfg::GetCardData(): start EMV failed Error Code: " + "0x" + String.Format("{0:X}", (ushort)rt));
           }
       }
       else
